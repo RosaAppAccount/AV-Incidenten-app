@@ -109,16 +109,18 @@ export default function IncidentApp() {
     setSelectedIncident(null);
     setSelectedOplossing(null);
     setPage("incidenten");
-    setGekozenOplossingen([]); // reset gekozen opties bij terug
+    setGekozenOplossingen([]);
     setAfgevinkteHandelingen([]);
   };
 
   // Checklist toggelen
   const toggleHandeling = (id) => {
-    setAfgevinkteHandelingen((prev) => prev.includes(id) ? prev.filter(h => h !== id) : [...prev, id]);
+    setAfgevinkteHandelingen((prev) =>
+      prev.includes(id) ? prev.filter(h => h !== id) : [...prev, id]
+    );
   };
 
-  // === UI: Oplossingen ===
+  // Oplossingen tonen
   const renderOplossing = (oplossing) => {
     const isGekozen = gekozenOplossingen.includes(oplossing.ID);
     return (
@@ -144,25 +146,32 @@ export default function IncidentApp() {
     );
   };
 
+  // Handelingen met optionele afbeelding
   const renderHandelingen = () => (
-    <ul>
-      {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map(h => (
-        <li key={h.ID}>
+    <ol>
+      {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
+        <li key={h.ID} style={{ marginBottom: '12px' }}>
           <label>
             <input
               type="checkbox"
               checked={afgevinkteHandelingen.includes(h.ID)}
               onChange={() => toggleHandeling(h.ID)}
-              style={{ marginRight: '8px', accentColor: '#22c55e' }} // groen vinkje
+              style={{ marginRight: '8px', accentColor: '#22c55e' }}
             />
             {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
           </label>
+          {/* Toon afbeelding als opgegeven */}
+          {h.AfbeeldingBestand && (
+            <div style={{ marginTop: '8px' }}>
+              <img src={`/afbeeldingen/${h.AfbeeldingBestand}`} alt="Uitleg" style={{ maxWidth: '100%', maxHeight: '300px', border: '1px solid #ccc', borderRadius: '6px' }} />
+            </div>
+          )}
         </li>
       ))}
-    </ul>
+    </ol>
   );
 
-  // Terug naar login
+  // === LOGIN SCHERM ===
   if (!isAuthorized) {
     return (
       <div style={{ maxWidth: '480px', margin: '100px auto', textAlign: 'center', padding: '30px', border: '1px solid #ddd', borderRadius: '10px' }}>
@@ -179,7 +188,7 @@ export default function IncidentApp() {
     );
   }
 
-  // === UI hoofdscherm ===
+  // === HOOFDSCHERM ===
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -190,7 +199,7 @@ export default function IncidentApp() {
         <button onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '5px' }}>Terug naar inlogscherm</button>
       </div>
 
-      {/* Admin logo & Excel */}
+      {/* Admin opties */}
       {isAdmin && (
         <div style={{ margin: '20px 0', textAlign: 'center' }}>
           <h2>🖼️ Upload een nieuw logo</h2>
@@ -199,6 +208,7 @@ export default function IncidentApp() {
         </div>
       )}
 
+      {/* Excel uploaden */}
       {isAdmin && page === "incidenten" && (
         <div style={{ marginBottom: '30px', textAlign: 'center' }}>
           <h2>📁 Upload Excelbestand</h2>
@@ -206,6 +216,7 @@ export default function IncidentApp() {
         </div>
       )}
 
+      {/* Incidentenlijst */}
       {page === "incidenten" && (
         <>
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>📋 Kies een incident uit de lijst</h2>
