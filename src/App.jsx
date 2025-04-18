@@ -230,22 +230,43 @@ export default function IncidentApp() {
       )}
 
       {page === "oplossingen" && selectedIncident && (
-        <div>
-          <button onClick={() => {
-            setPage("incidenten");
-            setGekozenOplossingen([]);
-            setSelectedOplossing(null);
-          }} style={{ marginBottom: '20px' }}>⬅ Terug</button>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '20px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
-            <h4 style={{ fontSize: '20px' }}>📌 Handelingen</h4>
-          </div>
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ flex: 1 }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}</div>
-            <div style={{ flex: 1 }}>{selectedOplossing ? renderHandelingen() : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}</div>
-          </div>
-        </div>
-      )}
+    <div>
+    <button 
+      onClick={() => {
+        setPage("incidenten");
+        setGekozenOplossingen([]);
+        setSelectedOplossing(null);
+      }} 
+      style={{ marginBottom: '20px' }}
+    >
+      ⬅ Terug
+    </button>
+
+    {/* Titelrij met beschrijving en handelingen-label */}
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <h3 style={{ fontSize: '20px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
+      <h4 style={{ fontSize: '20px' }}>📌 Handelingen</h4>
+    </div>
+
+    {/* Flex-container voor opties (links) en handelingen (rechts) */}
+    <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+      
+      {/* Oplossingenlijst - neemt 40% breedte in */}
+      <div style={{ flex: '0 0 40%' }}>
+        {oplossingen
+          .filter((o) => o.IncidentID === selectedIncident.ID)
+          .map(renderOplossing)}
+      </div>
+
+      {/* Handelingenkolom - neemt 60% breedte in */}
+      <div style={{ flex: '0 0 60%' }}>
+        {selectedOplossing 
+          ? renderHandelingen() 
+          : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
