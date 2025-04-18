@@ -1,10 +1,11 @@
 // Incidentenbeheer App - React component
-// Deze app toont opties bij noodgevallen en de bijbehorende handelingen (inclusief afbeeldingen)
+// Deze app toont opties bij noodgevallen en de bijbehorende handelingen (inclusief afbeeldingen en handleidingen)
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function IncidentApp() {
+  // App-status
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
@@ -13,6 +14,7 @@ export default function IncidentApp() {
   const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
   const [afgevinkteHandelingen, setAfgevinkteHandelingen] = useState([]);
 
+  // Login & admin
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
@@ -22,20 +24,38 @@ export default function IncidentApp() {
   const [page, setPage] = useState("incidenten");
   const [logoURL, setLogoURL] = useState("/logo.png");
 
+  // 📥 Bij het laden van de app, probeer data uit localStorage. Zo niet, laad standaard Excel
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     const opgeslagenLogo = localStorage.getItem("logoURL");
+
     if (opgeslagenData) {
       const { incidenten, oplossingen, handelingen } = JSON.parse(opgeslagenData);
       setIncidenten(incidenten);
       setOplossingen(oplossingen);
       setHandelingen(handelingen);
+    } else {
+      fetch("/standaard_excel.xlsx")
+        .then((res) => res.arrayBuffer())
+        .then((data) => {
+          const workbook = XLSX.read(data, { type: "array" });
+          const incidentenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Incidenten"]);
+          const oplossingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Oplossingen"]);
+          const handelingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Handelingen"]);
+          const dataObj = { incidenten: incidentenSheet, oplossingen: oplossingenSheet, handelingen: handelingenSheet };
+          localStorage.setItem("incidentenData", JSON.stringify(dataObj));
+          setIncidenten(incidentenSheet);
+          setOplossingen(oplossingenSheet);
+          setHandelingen(handelingenSheet);
+        });
     }
+
     if (opgeslagenLogo) {
       setLogoURL(opgeslagenLogo);
     }
   }, []);
 
+  // 📂 Upload Excel
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -69,7 +89,7 @@ export default function IncidentApp() {
       setIsAuthorized(true);
       setIsAdmin(false);
     } else {
-      alert("Ongeldig wachtwoord. Probeer opnieuw.");
+      alert("Ongeldig wachtwoord.");
     }
   };
 
@@ -83,13 +103,11 @@ export default function IncidentApp() {
   };
 
   const handlePasswordChange = () => {
-    const nieuwWachtwoord = prompt("Nieuw gebruikerswachtwoord:");
-    if (nieuwWachtwoord && nieuwWachtwoord.length >= 4) {
-      localStorage.setItem("userPassword", nieuwWachtwoord);
-      setUserPassword(nieuwWachtwoord);
-      alert("Wachtwoord succesvol gewijzigd.");
-    } else {
-      alert("Wachtwoord moet minstens 4 tekens zijn.");
+    const nieuw = prompt("Nieuw wachtwoord:");
+    if (nieuw && nieuw.length >= 4) {
+      localStorage.setItem("userPassword", nieuw);
+      setUserPassword(nieuw);
+      alert("Wachtwoord gewijzigd.");
     }
   };
 
@@ -136,43 +154,55 @@ export default function IncidentApp() {
     );
   };
 
-  // ✅ Nieuw: handelingen netjes uitgelijnd met nummer
-  const renderHandelingen = () => (
-    <table style={{ width: '100%', borderSpacing: '0 10px' }}>
-      <tbody>
-        {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
-          <tr key={h.ID}>
-            <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '65%' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                <input
-                  type="checkbox"
-                  checked={afgevinkteHandelingen.includes(h.ID)}
-                  onChange={() => toggleHandeling(h.ID)}
-                  style={{ marginTop: '4px', marginRight: '8px', accentColor: '#22c55e' }}
-                />
-                <div>
-                  <span style={{ fontWeight: 'bold' }}>{index + 1}. </span>
-                  <span>
-                    {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
-                  </span>
-                </div>
+ const renderHandelingen = () => (
+  <table style={{ width: '100%' }}>
+    <tbody>
+      {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
+        <tr key={h.ID}>
+          <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '65%' }}>
+            {/* Flex container zodat checkbox en tekst goed uitgelijnd staan */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <input
+                type="checkbox"
+                checked={afgevinkteHandelingen.includes(h.ID)}
+                onChange={() => toggleHandeling(h.ID)}
+                style={{ marginTop: '5px', accentColor: '#22c55e' }} // groen vinkje
+              />
+              <div>
+                <span>
+                  {index + 1}. {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
+                </span>
+                {/* Als er een handleiding is, laat een link zien */}
+                {h.Handleiding && (
+                  <div style={{ marginTop: '6px' }}>
+                    📄 <a href={`/handleidingen/${h.Handleiding}`} target="_blank" rel="noreferrer">Bekijk handleiding</a>
+                  </div>
+                )}
               </div>
-            </td>
-            <td style={{ width: '300px' }}>
-              {h.AfbeeldingBestand && (
-                <img
-                  src={`/afbeeldingen/${h.AfbeeldingBestand}`}
-                  alt="Uitleg"
-                  style={{ maxWidth: '100%', maxHeight: '200px', border: '1px solid #ccc', borderRadius: '6px' }}
-                />
-              )}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+            </div>
+          </td>
+          <td style={{ width: '35%' }}>
+            {/* Toon afbeelding als er een is */}
+            {h.AfbeeldingBestand && (
+              <img
+                src={`/afbeeldingen/${h.AfbeeldingBestand}`}
+                alt="Uitleg"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '200px',
+                  border: '1px solid #ccc',
+                  borderRadius: '6px'
+                }}
+              />
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
 
+  // 🔐 Login-scherm
   if (!isAuthorized) {
     return (
       <div style={{ maxWidth: '480px', margin: '100px auto', textAlign: 'center', padding: '30px', border: '1px solid #ddd', borderRadius: '10px' }}>
@@ -189,13 +219,14 @@ export default function IncidentApp() {
     );
   }
 
+  // 🖼️ App Layout
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
       {/* Header met logo en terugknop */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src={logoURL} alt="Logo" style={{ width: '40px', height: '40px' }} />
-          <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '0', color: '#006e4f' }}>🛠️ Incidentenbeheer App</h1>
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#006e4f' }}>🛠️ Incidentenbeheer App</h1>
         </div>
         <button onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '5px' }}>Terug naar inlogscherm</button>
       </div>
@@ -209,19 +240,18 @@ export default function IncidentApp() {
         </div>
       )}
 
-      {/* Excel upload voor admin */}
       {isAdmin && page === "incidenten" && (
         <div style={{ marginBottom: '30px', textAlign: 'center' }}>
           <h2>📁 Upload Excelbestand</h2>
-          <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} style={{ marginTop: '10px' }} />
+          <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} />
         </div>
       )}
 
-      {/* Incidentenpagina */}
+      {/* Incidentenlijst */}
       {page === "incidenten" && (
         <>
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>📋 Kies een incident uit de lijst</h2>
-          <div>{incidenten.map((incident) => (
+          <h2>📋 Kies een incident uit de lijst</h2>
+          {incidenten.map((incident) => (
             <button
               key={incident.ID}
               onClick={() => {
@@ -230,14 +260,15 @@ export default function IncidentApp() {
                 setPage("oplossingen");
                 setGekozenOplossingen([]);
               }}
-              style={{ display: 'block', marginBottom: '8px', padding: '10px 16px', backgroundColor: '#006e4f', color: 'white', borderRadius: '6px', width: '100%' }}>
+              style={{ display: 'block', marginBottom: '8px', padding: '10px 16px', backgroundColor: '#006e4f', color: 'white', borderRadius: '6px', width: '100%' }}
+            >
               {incident.Beschrijving}
             </button>
-          ))}</div>
+          ))}
         </>
       )}
 
-      {/* Oplossingenpagina */}
+      {/* Opties + Handelingen */}
       {page === "oplossingen" && selectedIncident && (
         <div>
           <button 
@@ -252,18 +283,13 @@ export default function IncidentApp() {
           </button>
 
           <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-            {/* Linkerkolom */}
             <div style={{ flex: '0 0 40%' }}>
-              <h3 style={{ fontSize: '20px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
+              <h3>💬 Opties: {selectedIncident.Beschrijving}</h3>
               {oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}
             </div>
-
-            {/* Rechterkolom */}
             <div style={{ flex: '0 0 60%' }}>
-              <h4 style={{ fontSize: '20px' }}>📌 Handelingen</h4>
-              {selectedOplossing ? renderHandelingen() : (
-                <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>
-              )}
+              <h4>📌 Handelingen</h4>
+              {selectedOplossing ? renderHandelingen() : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}
             </div>
           </div>
         </div>
