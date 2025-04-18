@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function IncidentApp() {
+  // STATUS
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
@@ -11,11 +12,13 @@ export default function IncidentApp() {
   const [page, setPage] = useState("incidenten");
   const [logoURL, setLogoURL] = useState("/logo.png");
 
+  // WACHTWOORD & LOGIN
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
   const [userPassword, setUserPassword] = useState(() => localStorage.getItem("userPassword") || "beheer2025");
   const [adminPassword, setAdminPassword] = useState("admin123");
 
+  // BIJ START LADEN UIT LOCALSTORAGE
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     const opgeslagenLogo = localStorage.getItem("logoURL");
@@ -30,6 +33,7 @@ export default function IncidentApp() {
     }
   }, []);
 
+  // EXCEL BESTAND LEZEN EN OPSLAAN
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -48,6 +52,7 @@ export default function IncidentApp() {
     reader.readAsArrayBuffer(file);
   };
 
+  // LOGO INLADEN EN OPSLAAN
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -58,6 +63,7 @@ export default function IncidentApp() {
     reader.readAsDataURL(file);
   };
 
+  // GEBRUIKER LOGIN
   const handleLogin = () => {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
@@ -67,6 +73,7 @@ export default function IncidentApp() {
     }
   };
 
+  // ADMIN LOGIN
   const handleAdminLogin = () => {
     if (inputPassword === adminPassword) {
       setIsAuthorized(true);
@@ -76,6 +83,7 @@ export default function IncidentApp() {
     }
   };
 
+  // ADMIN: GEBRUIKERSWACHTWOORD WIJZIGEN
   const handlePasswordChange = () => {
     const nieuwWachtwoord = prompt("Nieuw gebruikerswachtwoord:");
     if (nieuwWachtwoord && nieuwWachtwoord.length >= 4) {
@@ -87,6 +95,7 @@ export default function IncidentApp() {
     }
   };
 
+  // UITLOGGEN NAAR LOGINPAGINA
   const handleLogout = () => {
     setIsAuthorized(false);
     setIsAdmin(false);
@@ -96,32 +105,37 @@ export default function IncidentApp() {
     setPage("incidenten");
   };
 
+  // === LOGIN SCHERM ===
   if (!isAuthorized) {
     return (
-      <div style={{ maxWidth: '400px', margin: '100px auto', textAlign: 'center', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <h2>🔐 Toegang vereist</h2>
-        <p>Voer je wachtwoord in:</p>
+      <div style={{ maxWidth: '480px', margin: '100px auto', textAlign: 'center', padding: '30px', border: '1px solid #ddd', borderRadius: '10px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#006e4f' }}>🛠️ Incidentenbeheer App</h1>
+        <p style={{ marginBottom: '20px', color: '#374151' }}>
+          Deze app toont de juiste oplossingen en handelingen bij noodgevallen.
+        </p>
         <input
           type="password"
           value={inputPassword}
           onChange={(e) => setInputPassword(e.target.value)}
-          style={{ padding: '10px', width: '100%', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+          placeholder="Wachtwoord..."
+          style={{ padding: '10px', width: '100%', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc' }}
         />
         <div>
-          <button onClick={handleLogin} style={{ backgroundColor: '#10b981', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}>Inloggen als gebruiker</button>
-          <button onClick={handleAdminLogin} style={{ backgroundColor: '#3b82f6', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Inloggen als admin</button>
+          <button onClick={handleLogin} style={{ backgroundColor: '#006e4f', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}>Gebruiker</button>
+          <button onClick={handleAdminLogin} style={{ backgroundColor: '#00a2a1', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Admin</button>
         </div>
       </div>
     );
   }
 
+  // === APP INTERFACE ===
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
-      {/* Header met logo en eventueel admin logout knop */}
+      {/* HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src={logoURL} alt="Logo" style={{ width: '40px', height: '40px' }} />
-          <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '0' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '0', color: '#006e4f' }}>
             🛠️ Incidentenbeheer App
           </h1>
         </div>
@@ -133,7 +147,7 @@ export default function IncidentApp() {
         </button>
       </div>
 
-      {/* Admin: extra functies */}
+      {/* ADMIN EXTRAS */}
       {isAdmin && (
         <div style={{ textAlign: 'center', margin: '20px 0' }}>
           <h2 style={{ fontSize: '16px' }}>🖼️ Upload een nieuw logo</h2>
@@ -142,7 +156,6 @@ export default function IncidentApp() {
         </div>
       )}
 
-      {/* Admin: upload Excelbestand */}
       {isAdmin && page === "incidenten" && (
         <div style={{ marginBottom: '30px', textAlign: 'center' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>📁 Upload Excelbestand</h2>
@@ -150,7 +163,7 @@ export default function IncidentApp() {
         </div>
       )}
 
-      {/* Lijst met incidenten */}
+      {/* INCIDENTEN */}
       {page === "incidenten" && (
         <>
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>📋 Kies een incident uit de lijst</h2>
@@ -162,7 +175,7 @@ export default function IncidentApp() {
                 setSelectedOplossing(null);
                 setPage("oplossingen");
               }}
-              style={{ display: 'block', marginBottom: '8px', padding: '10px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}
+              style={{ display: 'block', marginBottom: '8px', padding: '10px 16px', backgroundColor: '#006e4f', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}
             >
               {incident.Beschrijving}
             </button>
@@ -175,7 +188,7 @@ export default function IncidentApp() {
         </>
       )}
 
-      {/* Oplossingen en handelingen */}
+      {/* OPLOSSINGEN & HANDELINGEN */}
       {page === "oplossingen" && selectedIncident && (
         <div>
           <button onClick={() => setPage("incidenten")} style={{ marginBottom: '20px' }}>⬅ Terug</button>
@@ -189,7 +202,7 @@ export default function IncidentApp() {
           </div>
           <div style={{ display: 'flex', gap: '20px' }}>
             <div style={{ flex: 1, minWidth: '400px' }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map((oplossing) => (
-              <div key={oplossing.ID} onClick={() => setSelectedOplossing(oplossing)} style={{ border: selectedOplossing?.ID === oplossing.ID ? '2px solid #16a34a' : '1px solid #ccc', padding: '12px', borderRadius: '8px', marginBottom: '10px', cursor: 'pointer', backgroundColor: '#f0fdf4' }}>
+              <div key={oplossing.ID} onClick={() => setSelectedOplossing(oplossing)} style={{ border: selectedOplossing?.ID === oplossing.ID ? '2px solid #00a2a1' : '1px solid #ccc', padding: '12px', borderRadius: '8px', marginBottom: '10px', cursor: 'pointer', backgroundColor: '#f0fdf4' }}>
                 <strong style={{ fontSize: '16px' }}>{oplossing.Beschrijving}</strong>
                 <p style={{ margin: '6px 0 0', color: '#6b7280' }}>💡 Consequentie: {oplossing.Consequentie}</p>
               </div>
