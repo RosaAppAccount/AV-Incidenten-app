@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function IncidentApp() {
-  // App-status
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
@@ -14,7 +13,6 @@ export default function IncidentApp() {
   const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
   const [afgevinkteHandelingen, setAfgevinkteHandelingen] = useState([]);
 
-  // Login & admin
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
@@ -24,7 +22,6 @@ export default function IncidentApp() {
   const [page, setPage] = useState("incidenten");
   const [logoURL, setLogoURL] = useState("/logo.png");
 
-  // Gegevens ophalen bij laden
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     const opgeslagenLogo = localStorage.getItem("logoURL");
@@ -39,7 +36,6 @@ export default function IncidentApp() {
     }
   }, []);
 
-  // Excel verwerken
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -58,7 +54,6 @@ export default function IncidentApp() {
     reader.readAsArrayBuffer(file);
   };
 
-  // Logo uploaden
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -69,7 +64,6 @@ export default function IncidentApp() {
     reader.readAsDataURL(file);
   };
 
-  // Login handlers
   const handleLogin = () => {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
@@ -142,12 +136,11 @@ export default function IncidentApp() {
     );
   };
 
-const renderHandelingen = () => (
-  <table style={{ width: '100%', borderSpacing: '0 10px' }}>
-    <tbody>
-      {handelingen
-        .filter(h => h.OplossingID === selectedOplossing.ID)
-        .map((h, index) => (
+  // ✅ Nieuw: handelingen netjes uitgelijnd met nummer
+  const renderHandelingen = () => (
+    <table style={{ width: '100%', borderSpacing: '0 10px' }}>
+      <tbody>
+        {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
           <tr key={h.ID}>
             <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '65%' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -170,20 +163,15 @@ const renderHandelingen = () => (
                 <img
                   src={`/afbeeldingen/${h.AfbeeldingBestand}`}
                   alt="Uitleg"
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '200px',
-                    border: '1px solid #ccc',
-                    borderRadius: '6px'
-                  }}
+                  style={{ maxWidth: '100%', maxHeight: '200px', border: '1px solid #ccc', borderRadius: '6px' }}
                 />
               )}
             </td>
           </tr>
         ))}
-    </tbody>
-  </table>
-);
+      </tbody>
+    </table>
+  );
 
   if (!isAuthorized) {
     return (
@@ -203,6 +191,7 @@ const renderHandelingen = () => (
 
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
+      {/* Header met logo en terugknop */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src={logoURL} alt="Logo" style={{ width: '40px', height: '40px' }} />
@@ -211,6 +200,7 @@ const renderHandelingen = () => (
         <button onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '5px' }}>Terug naar inlogscherm</button>
       </div>
 
+      {/* Admin opties */}
       {isAdmin && (
         <div style={{ margin: '20px 0', textAlign: 'center' }}>
           <h2>🖼️ Upload een nieuw logo</h2>
@@ -219,6 +209,7 @@ const renderHandelingen = () => (
         </div>
       )}
 
+      {/* Excel upload voor admin */}
       {isAdmin && page === "incidenten" && (
         <div style={{ marginBottom: '30px', textAlign: 'center' }}>
           <h2>📁 Upload Excelbestand</h2>
@@ -226,6 +217,7 @@ const renderHandelingen = () => (
         </div>
       )}
 
+      {/* Incidentenpagina */}
       {page === "incidenten" && (
         <>
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>📋 Kies een incident uit de lijst</h2>
@@ -245,41 +237,37 @@ const renderHandelingen = () => (
         </>
       )}
 
+      {/* Oplossingenpagina */}
       {page === "oplossingen" && selectedIncident && (
-  <div>
-    <button 
-      onClick={() => {
-        setPage("incidenten");
-        setGekozenOplossingen([]);
-        setSelectedOplossing(null);
-      }} 
-      style={{ marginBottom: '20px' }}
-    >
-      ⬅ Terug
-    </button>
+        <div>
+          <button 
+            onClick={() => {
+              setPage("incidenten");
+              setGekozenOplossingen([]);
+              setSelectedOplossing(null);
+            }} 
+            style={{ marginBottom: '20px' }}
+          >
+            ⬅ Terug
+          </button>
 
-    {/* Flex-container voor de twee kolommen */}
-    <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-      
-      {/* Linkerkolom: Opties */}
-      <div style={{ flex: '0 0 40%' }}>
-        <h3 style={{ fontSize: '20px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
-        {oplossingen
-          .filter((o) => o.IncidentID === selectedIncident.ID)
-          .map(renderOplossing)}
-      </div>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+            {/* Linkerkolom */}
+            <div style={{ flex: '0 0 40%' }}>
+              <h3 style={{ fontSize: '20px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
+              {oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}
+            </div>
 
-      {/* Rechterkolom: Handelingen */}
-      <div style={{ flex: '0 0 60%' }}>
-        <h4 style={{ fontSize: '20px' }}>📌 Handelingen</h4>
-        {selectedOplossing 
-          ? renderHandelingen() 
-          : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}
-      </div>
-    </div>
-  </div>
-)}
+            {/* Rechterkolom */}
+            <div style={{ flex: '0 0 60%' }}>
+              <h4 style={{ fontSize: '20px' }}>📌 Handelingen</h4>
+              {selectedOplossing ? renderHandelingen() : (
+                <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
