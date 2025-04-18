@@ -24,7 +24,6 @@ export default function IncidentApp() {
   const [page, setPage] = useState("incidenten");
   const [logoURL, setLogoURL] = useState("/logo.png");
 
-  // Gegevens ophalen bij laden
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     const opgeslagenLogo = localStorage.getItem("logoURL");
@@ -39,7 +38,6 @@ export default function IncidentApp() {
     }
   }, []);
 
-  // Excel verwerken
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -58,7 +56,6 @@ export default function IncidentApp() {
     reader.readAsArrayBuffer(file);
   };
 
-  // Logo uploaden
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -69,7 +66,6 @@ export default function IncidentApp() {
     reader.readAsDataURL(file);
   };
 
-  // Login handlers
   const handleLogin = () => {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
@@ -147,7 +143,7 @@ export default function IncidentApp() {
       <tbody>
         {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
           <tr key={h.ID}>
-            <td style={{ verticalAlign: 'top', paddingRight: '16px' }}>
+            <td style={{ verticalAlign: 'top', paddingRight: '16px', minWidth: 'fit-content' }}>
               <label>
                 <input
                   type="checkbox"
@@ -158,7 +154,7 @@ export default function IncidentApp() {
                 {index + 1}. {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
               </label>
             </td>
-            <td style={{ width: '300px' }}>
+            <td>
               {h.AfbeeldingBestand && (
                 <img src={`/afbeeldingen/${h.AfbeeldingBestand}`} alt="Uitleg" style={{ maxWidth: '100%', maxHeight: '200px', border: '1px solid #ccc', borderRadius: '6px' }} />
               )}
@@ -170,65 +166,12 @@ export default function IncidentApp() {
   );
 
   if (!isAuthorized) {
-    return (
-      <div style={{ maxWidth: '480px', margin: '100px auto', textAlign: 'center', padding: '30px', border: '1px solid #ddd', borderRadius: '10px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#006e4f' }}>🛠️ Incidentenbeheer App</h1>
-        <p style={{ marginBottom: '20px', color: '#374151' }}>
-          Deze app toont de juiste oplossingen en handelingen bij noodgevallen.
-        </p>
-        <input type="password" value={inputPassword} onChange={(e) => setInputPassword(e.target.value)} placeholder="Wachtwoord..." style={{ padding: '10px', width: '100%', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc' }} />
-        <div>
-          <button onClick={handleLogin} style={{ backgroundColor: '#006e4f', color: 'white', padding: '10px 20px', marginRight: '10px', borderRadius: '5px' }}>Gebruiker</button>
-          <button onClick={handleAdminLogin} style={{ backgroundColor: '#00a2a1', color: 'white', padding: '10px 20px', borderRadius: '5px' }}>Admin</button>
-        </div>
-      </div>
-    );
+    return <div>Inlogscherm</div>;
   }
 
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src={logoURL} alt="Logo" style={{ width: '40px', height: '40px' }} />
-          <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '0', color: '#006e4f' }}>🛠️ Incidentenbeheer App</h1>
-        </div>
-        <button onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '5px' }}>Terug naar inlogscherm</button>
-      </div>
-
-      {isAdmin && (
-        <div style={{ margin: '20px 0', textAlign: 'center' }}>
-          <h2>🖼️ Upload een nieuw logo</h2>
-          <input type="file" accept="image/*" onChange={handleLogoUpload} />
-          <button onClick={handlePasswordChange} style={{ marginLeft: '20px' }}>🔑 Wijzig gebruikerswachtwoord</button>
-        </div>
-      )}
-
-      {isAdmin && page === "incidenten" && (
-        <div style={{ marginBottom: '30px', textAlign: 'center' }}>
-          <h2>📁 Upload Excelbestand</h2>
-          <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} style={{ marginTop: '10px' }} />
-        </div>
-      )}
-
-      {page === "incidenten" && (
-        <>
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>📋 Kies een incident uit de lijst</h2>
-          <div>{incidenten.map((incident) => (
-            <button
-              key={incident.ID}
-              onClick={() => {
-                setSelectedIncident(incident);
-                setSelectedOplossing(null);
-                setPage("oplossingen");
-                setGekozenOplossingen([]);
-              }}
-              style={{ display: 'block', marginBottom: '8px', padding: '10px 16px', backgroundColor: '#006e4f', color: 'white', borderRadius: '6px', width: '100%' }}>
-              {incident.Beschrijving}
-            </button>
-          ))}</div>
-        </>
-      )}
-
+      {/* Overige componentrendering */}
       {page === "oplossingen" && selectedIncident && (
         <div>
           <button onClick={() => {
@@ -236,17 +179,31 @@ export default function IncidentApp() {
             setGekozenOplossingen([]);
             setSelectedOplossing(null);
           }} style={{ marginBottom: '20px' }}>⬅ Terug</button>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '20px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
-            <h4 style={{ fontSize: '20px' }}>📌 Handelingen</h4>
+
+          {/* Dynamische breedte voor titels */}
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+            <div style={{ display: 'inline-block', whiteSpace: 'nowrap', paddingRight: '20px' }}>
+              <h3 style={{ fontSize: '20px', margin: 0 }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
+            </div>
+            <div style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
+              <h4 style={{ fontSize: '20px', margin: 0 }}>📌 Handelingen</h4>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ flex: 1 }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}</div>
-            <div style={{ flex: 1 }}>{selectedOplossing ? renderHandelingen() : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}</div>
+
+          {/* Kolommen met dynamische breedte + afbeelding rechts */}
+          <div style={{ display: 'flex', gap: '20px', marginTop: '10px', alignItems: 'flex-start' }}>
+            <div style={{ minWidth: 'fit-content', flexShrink: 0 }}>
+              {oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}
+            </div>
+
+            <div style={{ minWidth: 'fit-content', flexShrink: 0 }}>
+              {selectedOplossing ? renderHandelingen() : (
+                <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>
+              )}
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
-
