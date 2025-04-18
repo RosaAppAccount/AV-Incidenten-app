@@ -12,6 +12,12 @@ export default function IncidentApp() {
   const [page, setPage] = useState("incidenten");
   const [logoURL, setLogoURL] = useState("/logo.png");
 
+  // Wachtwoordbeveiliging
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [inputPassword, setInputPassword] = useState("");
+  const [userPassword, setUserPassword] = useState(() => localStorage.getItem("userPassword") || "beheer2025");
+  const [adminPassword, setAdminPassword] = useState("admin123");
+
   // Haal gegevens uit localStorage bij het laden van de app
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
@@ -65,67 +71,70 @@ export default function IncidentApp() {
     reader.readAsDataURL(file);
   };
 
-  // Toon de lijst met incidenten als knoppen
-  const incidentOptions = incidenten.map((incident) => (
-    <button
-      key={incident.ID}
-      onClick={() => {
-        setSelectedIncident(incident);
-        setSelectedOplossing(null);
-        setPage("oplossingen");
-      }}
-      style={{
-        display: 'block',
-        marginBottom: '8px',
-        padding: '10px 16px',
-        backgroundColor: '#10b981',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        width: '100%'
-      }}
-    >
-      {incident.Beschrijving}
-    </button>
-  ));
+  // Inlogcontrole gebruiker
+  const handleLogin = () => {
+    if (inputPassword === userPassword) {
+      setIsAuthorized(true);
+    } else {
+      alert("Ongeldig wachtwoord. Probeer opnieuw.");
+    }
+  };
 
-  // Toon oplossingen bij gekozen incident
-  const oplossingOptions = selectedIncident
-    ? oplossingen
-        .filter((o) => o.IncidentID === selectedIncident.ID)
-        .map((oplossing) => (
-          <div
-            key={oplossing.ID}
-            onClick={() => {
-              setSelectedOplossing(oplossing);
-            }}
-            style={{
-              border: selectedOplossing?.ID === oplossing.ID ? '2px solid #16a34a' : '1px solid #ccc',
-              padding: '12px',
-              borderRadius: '8px',
-              marginBottom: '10px',
-              cursor: 'pointer',
-              backgroundColor: '#f0fdf4'
-            }}
-          >
-            <strong style={{ fontSize: '16px' }}>{oplossing.Beschrijving}</strong>
-            <p style={{ margin: '6px 0 0', color: '#6b7280' }}>💡 Consequentie: {oplossing.Consequentie}</p>
-          </div>
-        ))
-    : null;
+  // Inlogcontrole admin
+  const handleAdminLogin = () => {
+    const wachtwoord = prompt("Voer het admin-wachtwoord in:");
+    if (wachtwoord === adminPassword) {
+      setIsAdmin(true);
+    } else {
+      alert("Ongeldig admin-wachtwoord.");
+    }
+  };
 
-  // Toon handelingen bij gekozen oplossing
-  const handelingList = selectedOplossing
-    ? handelingen
-        .filter((h) => h.OplossingID === selectedOplossing.ID)
-        .map((h) => (
-          <li key={h.ID} style={{ marginBottom: '6px' }}>
-            ✅ {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
-          </li>
-        ))
-    : null;
+  // Wachtwoord wijzigen door admin
+  const handlePasswordChange = () => {
+    const nieuwWachtwoord = prompt("Nieuw gebruikerswachtwoord:");
+    if (nieuwWachtwoord && nieuwWachtwoord.length >= 4) {
+      localStorage.setItem("userPassword", nieuwWachtwoord);
+      setUserPassword(nieuwWachtwoord);
+      alert("Wachtwoord succesvol gewijzigd.");
+    } else {
+      alert("Wachtwoord moet minstens 4 tekens zijn.");
+    }
+  };
+
+  // Login prompt bij eerste bezoek
+  if (!isAuthorized) {
+    return (
+      <div style={{ maxWidth: '400px', margin: '100px auto', textAlign: 'center', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
+        <h2>🔐 Toegang vereist</h2>
+        <p>Voer het wachtwoord in om de app te openen:</p>
+        <input
+          type="password"
+          value={inputPassword}
+          onChange={(e) => setInputPassword(e.target.value)}
+          style={{ padding: '10px', width: '100%', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+        />
+        <button
+          onClick={handleLogin}
+          style={{ backgroundColor: '#10b981', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}
+        >
+          Inloggen
+        </button>
+        <button
+          onClick={handleAdminLogin}
+          style={{ backgroundColor: '#3b82f6', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+        >
+          Admin login
+        </button>
+      </div>
+    );
+  }
+
+  // De rest van de oorspronkelijke app volgt hieronder ongewijzigd...
+  // (de bestaande layout, incidenten/oplossingen/handelingen interface blijft behouden)
+
+  // De code onder "return ( ... )" is reeds aanwezig en hoeft niet gewijzigd te worden, tenzij je daar ook iets extra's wil.
+  // Laat me weten als je ook daar iets extra's wil inbouwen.
 
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
@@ -158,6 +167,7 @@ export default function IncidentApp() {
         <div style={{ textAlign: 'center', margin: '20px 0' }}>
           <h2 style={{ fontSize: '16px' }}>🖼️ Upload een nieuw logo</h2>
           <input type="file" accept="image/*" onChange={handleLogoUpload} />
+          <button onClick={handlePasswordChange} style={{ marginLeft: '20px' }}>🔑 Wijzig gebruikerswachtwoord</button>
         </div>
       )}
 
@@ -177,7 +187,30 @@ export default function IncidentApp() {
           )}
 
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>📋 Kies een incident uit de lijst</h2>
-          <div>{incidentOptions}</div>
+          <div>{incidenten.map((incident) => (
+            <button
+              key={incident.ID}
+              onClick={() => {
+                setSelectedIncident(incident);
+                setSelectedOplossing(null);
+                setPage("oplossingen");
+              }}
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                padding: '10px 16px',
+                backgroundColor: '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                width: '100%'
+              }}
+            >
+              {incident.Beschrijving}
+            </button>
+          ))}</div>
 
           {!isAdmin && incidenten.length === 0 && (
             <p style={{ textAlign: 'center', marginTop: '40px', color: '#6b7280' }}>
@@ -200,10 +233,30 @@ export default function IncidentApp() {
             </h4>
           </div>
           <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ flex: 1, minWidth: '400px' }}>{oplossingOptions}</div>
+            <div style={{ flex: 1, minWidth: '400px' }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map((oplossing) => (
+              <div
+                key={oplossing.ID}
+                onClick={() => setSelectedOplossing(oplossing)}
+                style={{
+                  border: selectedOplossing?.ID === oplossing.ID ? '2px solid #16a34a' : '1px solid #ccc',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  marginBottom: '10px',
+                  cursor: 'pointer',
+                  backgroundColor: '#f0fdf4'
+                }}
+              >
+                <strong style={{ fontSize: '16px' }}>{oplossing.Beschrijving}</strong>
+                <p style={{ margin: '6px 0 0', color: '#6b7280' }}>💡 Consequentie: {oplossing.Consequentie}</p>
+              </div>
+            ))}</div>
             <div style={{ flex: 1, minWidth: '400px' }}>
               {selectedOplossing ? (
-                <ul style={{ paddingLeft: '20px' }}>{handelingList}</ul>
+                <ul style={{ paddingLeft: '20px' }}>{handelingen.filter((h) => h.OplossingID === selectedOplossing.ID).map((h) => (
+                  <li key={h.ID} style={{ marginBottom: '6px' }}>
+                    ✅ {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
+                  </li>
+                ))}</ul>
               ) : (
                 <p style={{ color: '#6b7280' }}>Klik op een oplossing om de handelingen te bekijken.</p>
               )}
