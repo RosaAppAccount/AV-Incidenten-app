@@ -197,7 +197,7 @@ export default function IncidentApp() {
                   }
                 }}
                 style={{
-                  border: geselecteerdeOplossing?.ID === oplossing.ID ? '2px solid #00a2a1' : '1px solid #ccc',
+                  border: selectedOplossing?.ID === oplossing.ID ? '2px solid #00a2a1' : '1px solid #ccc',
                   backgroundColor: gekozenOplossingen.includes(oplossing.ID) ? '#e2e8f0' : '#f0fdf4',
                   padding: '12px',
                   borderRadius: '8px',
