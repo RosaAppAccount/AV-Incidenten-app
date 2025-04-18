@@ -143,7 +143,7 @@ export default function IncidentApp() {
       <tbody>
         {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
           <tr key={h.ID}>
-            <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '70%' }}>
+            <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '65%' }}>
               <label>
                 <input
                   type="checkbox"
@@ -154,7 +154,7 @@ export default function IncidentApp() {
                 {index + 1}. {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
               </label>
             </td>
-            <td style={{ width: '30%' }}>
+            <td style={{ width: '35%' }}>
               {h.AfbeeldingBestand && (
                 <img
                   src={`/afbeeldingen/${h.AfbeeldingBestand}`}
@@ -184,15 +184,17 @@ export default function IncidentApp() {
             setGekozenOplossingen([]);
             setSelectedOplossing(null);
           }} style={{ marginBottom: '20px' }}>⬅ Terug</button>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+
+          {/* Bovenste regel met opties en handelingen-kop */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <h3 style={{ fontSize: '20px', flex: 1 }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
+            <h4 style={{ fontSize: '20px', fontWeight: 'bold', flex: 1, textAlign: 'left' }}>📌 Handelingen</h4>
           </div>
-          <div style={{ display: 'flex', gap: '20px' }}>
+
+          {/* Oplossingen en handelingen in kolommen */}
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
             <div style={{ flex: 1 }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}</div>
-            <div style={{ flex: 1 }}>
-              <h4 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>📌 Handelingen</h4>
-              {selectedOplossing ? renderHandelingen() : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}
-            </div>
+            <div style={{ flex: 1 }}>{selectedOplossing ? renderHandelingen() : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}</div>
           </div>
         </div>
       )}
