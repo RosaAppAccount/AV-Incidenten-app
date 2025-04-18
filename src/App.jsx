@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function IncidentApp() {
-  // App-status
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
@@ -14,7 +13,6 @@ export default function IncidentApp() {
   const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
   const [afgevinkteHandelingen, setAfgevinkteHandelingen] = useState([]);
 
-  // Login & admin
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
@@ -24,7 +22,6 @@ export default function IncidentApp() {
   const [page, setPage] = useState("incidenten");
   const [logoURL, setLogoURL] = useState("/logo.png");
 
-  // Gegevens ophalen bij laden
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     const opgeslagenLogo = localStorage.getItem("logoURL");
@@ -39,7 +36,6 @@ export default function IncidentApp() {
     }
   }, []);
 
-  // Excel verwerken
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -58,7 +54,6 @@ export default function IncidentApp() {
     reader.readAsArrayBuffer(file);
   };
 
-  // Logo uploaden
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -69,7 +64,6 @@ export default function IncidentApp() {
     reader.readAsDataURL(file);
   };
 
-  // Login handlers
   const handleLogin = () => {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
@@ -238,11 +232,11 @@ export default function IncidentApp() {
           }} style={{ marginBottom: '20px' }}>⬅ Terug</button>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <h3 style={{ fontSize: '20px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
-            <h4 style={{ fontSize: '20px' }}>📌 Handelingen</h4>
+            <h4 style={{ fontSize: '20px', textAlign: 'left', marginRight: 'auto' }}>📌 Handelingen</h4>
           </div>
           <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ flex: 1 }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}</div>
-            <div style={{ flex: 1 }}>{selectedOplossing ? renderHandelingen() : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}</div>
+            <div style={{ flex: 0.8 }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}</div>
+            <div style={{ flex: 1.5 }}>{selectedOplossing ? renderHandelingen() : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}</div>
           </div>
         </div>
       )}
