@@ -142,32 +142,48 @@ export default function IncidentApp() {
     );
   };
 
-  const renderHandelingen = () => (
-    <table style={{ width: '100%' }}>
-      <tbody>
-        {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
+const renderHandelingen = () => (
+  <table style={{ width: '100%', borderSpacing: '0 10px' }}>
+    <tbody>
+      {handelingen
+        .filter(h => h.OplossingID === selectedOplossing.ID)
+        .map((h, index) => (
           <tr key={h.ID}>
-            <td style={{ verticalAlign: 'top', paddingRight: '16px' }}>
-              <label>
+            <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '65%' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                 <input
                   type="checkbox"
                   checked={afgevinkteHandelingen.includes(h.ID)}
                   onChange={() => toggleHandeling(h.ID)}
-                  style={{ marginRight: '8px', accentColor: '#22c55e' }}
+                  style={{ marginTop: '4px', marginRight: '8px', accentColor: '#22c55e' }}
                 />
-                {index + 1}. {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
-              </label>
+                <div>
+                  <span style={{ fontWeight: 'bold' }}>{index + 1}. </span>
+                  <span>
+                    {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
+                  </span>
+                </div>
+              </div>
             </td>
             <td style={{ width: '300px' }}>
               {h.AfbeeldingBestand && (
-                <img src={`/afbeeldingen/${h.AfbeeldingBestand}`} alt="Uitleg" style={{ maxWidth: '100%', maxHeight: '200px', border: '1px solid #ccc', borderRadius: '6px' }} />
+                <img
+                  src={`/afbeeldingen/${h.AfbeeldingBestand}`}
+                  alt="Uitleg"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '200px',
+                    border: '1px solid #ccc',
+                    borderRadius: '6px'
+                  }}
+                />
               )}
             </td>
           </tr>
         ))}
-      </tbody>
-    </table>
-  );
+    </tbody>
+  </table>
+);
 
   if (!isAuthorized) {
     return (
