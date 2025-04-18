@@ -1,24 +1,30 @@
+// Incidentenbeheer App - React component
+// Deze app toont opties bij noodgevallen en de bijbehorende handelingen
+
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function IncidentApp() {
-  // STATUS
+  // App-status
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [selectedOplossing, setSelectedOplossing] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [page, setPage] = useState("incidenten");
-  const [logoURL, setLogoURL] = useState("/logo.png");
+  const [gekozenOplossingen, setGekozenOplossingen] = useState([]); // houdt bij welke oplossingen al gekozen zijn
+  const [afgevinkteHandelingen, setAfgevinkteHandelingen] = useState([]); // checklist status
 
-  // WACHTWOORD & LOGIN
+  // Login & admin
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
   const [userPassword, setUserPassword] = useState(() => localStorage.getItem("userPassword") || "beheer2025");
-  const [adminPassword, setAdminPassword] = useState("admin123");
+  const [adminPassword] = useState("admin123");
 
-  // BIJ START LADEN UIT LOCALSTORAGE
+  const [page, setPage] = useState("incidenten");
+  const [logoURL, setLogoURL] = useState("/logo.png");
+
+  // Gegevens laden uit localStorage
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     const opgeslagenLogo = localStorage.getItem("logoURL");
@@ -33,7 +39,7 @@ export default function IncidentApp() {
     }
   }, []);
 
-  // EXCEL BESTAND LEZEN EN OPSLAAN
+  // Excelbestand verwerken
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -52,7 +58,7 @@ export default function IncidentApp() {
     reader.readAsArrayBuffer(file);
   };
 
-  // LOGO INLADEN EN OPSLAAN
+  // Logo uploaden
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -63,7 +69,7 @@ export default function IncidentApp() {
     reader.readAsDataURL(file);
   };
 
-  // GEBRUIKER LOGIN
+  // Login voor gebruikers
   const handleLogin = () => {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
@@ -73,7 +79,7 @@ export default function IncidentApp() {
     }
   };
 
-  // ADMIN LOGIN
+  // Login voor admin
   const handleAdminLogin = () => {
     if (inputPassword === adminPassword) {
       setIsAuthorized(true);
@@ -83,7 +89,7 @@ export default function IncidentApp() {
     }
   };
 
-  // ADMIN: GEBRUIKERSWACHTWOORD WIJZIGEN
+  // Wachtwoord wijzigen
   const handlePasswordChange = () => {
     const nieuwWachtwoord = prompt("Nieuw gebruikerswachtwoord:");
     if (nieuwWachtwoord && nieuwWachtwoord.length >= 4) {
@@ -95,7 +101,7 @@ export default function IncidentApp() {
     }
   };
 
-  // UITLOGGEN NAAR LOGINPAGINA
+  // Uitloggen
   const handleLogout = () => {
     setIsAuthorized(false);
     setIsAdmin(false);
@@ -103,6 +109,13 @@ export default function IncidentApp() {
     setSelectedIncident(null);
     setSelectedOplossing(null);
     setPage("incidenten");
+    setGekozenOplossingen([]);
+    setAfgevinkteHandelingen([]);
+  };
+
+  // Aangevinkte handelingen bijhouden
+  const toggleHandeling = (id) => {
+    setAfgevinkteHandelingen((prev) => prev.includes(id) ? prev.filter(h => h !== id) : [...prev, id]);
   };
 
   // === LOGIN SCHERM ===
@@ -113,44 +126,29 @@ export default function IncidentApp() {
         <p style={{ marginBottom: '20px', color: '#374151' }}>
           Deze app toont de juiste oplossingen en handelingen bij noodgevallen.
         </p>
-        <input
-          type="password"
-          value={inputPassword}
-          onChange={(e) => setInputPassword(e.target.value)}
-          placeholder="Wachtwoord..."
-          style={{ padding: '10px', width: '100%', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc' }}
-        />
+        <input type="password" value={inputPassword} onChange={(e) => setInputPassword(e.target.value)} placeholder="Wachtwoord..." style={{ padding: '10px', width: '100%', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc' }} />
         <div>
-          <button onClick={handleLogin} style={{ backgroundColor: '#006e4f', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}>Gebruiker</button>
-          <button onClick={handleAdminLogin} style={{ backgroundColor: '#00a2a1', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Admin</button>
+          <button onClick={handleLogin} style={{ backgroundColor: '#006e4f', color: 'white', padding: '10px 20px', marginRight: '10px', borderRadius: '5px' }}>Gebruiker</button>
+          <button onClick={handleAdminLogin} style={{ backgroundColor: '#00a2a1', color: 'white', padding: '10px 20px', borderRadius: '5px' }}>Admin</button>
         </div>
       </div>
     );
   }
 
-  // === APP INTERFACE ===
+  // === UI ===
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
-      {/* HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src={logoURL} alt="Logo" style={{ width: '40px', height: '40px' }} />
-          <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '0', color: '#006e4f' }}>
-            🛠️ Incidentenbeheer App
-          </h1>
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '0', color: '#006e4f' }}>🛠️ Incidentenbeheer App</h1>
         </div>
-        <button
-          onClick={handleLogout}
-          style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          Terug naar inlogscherm
-        </button>
+        <button onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '5px' }}>Terug naar inlogscherm</button>
       </div>
 
-      {/* ADMIN EXTRAS */}
       {isAdmin && (
-        <div style={{ textAlign: 'center', margin: '20px 0' }}>
-          <h2 style={{ fontSize: '16px' }}>🖼️ Upload een nieuw logo</h2>
+        <div style={{ margin: '20px 0', textAlign: 'center' }}>
+          <h2>🖼️ Upload een nieuw logo</h2>
           <input type="file" accept="image/*" onChange={handleLogoUpload} />
           <button onClick={handlePasswordChange} style={{ marginLeft: '20px' }}>🔑 Wijzig gebruikerswachtwoord</button>
         </div>
@@ -158,12 +156,11 @@ export default function IncidentApp() {
 
       {isAdmin && page === "incidenten" && (
         <div style={{ marginBottom: '30px', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold' }}>📁 Upload Excelbestand</h2>
+          <h2>📁 Upload Excelbestand</h2>
           <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} style={{ marginTop: '10px' }} />
         </div>
       )}
 
-      {/* INCIDENTEN */}
       {page === "incidenten" && (
         <>
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>📋 Kies een incident uit de lijst</h2>
@@ -175,47 +172,58 @@ export default function IncidentApp() {
                 setSelectedOplossing(null);
                 setPage("oplossingen");
               }}
-              style={{ display: 'block', marginBottom: '8px', padding: '10px 16px', backgroundColor: '#006e4f', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}
-            >
+              style={{ display: 'block', marginBottom: '8px', padding: '10px 16px', backgroundColor: '#006e4f', color: 'white', borderRadius: '6px', width: '100%' }}>
               {incident.Beschrijving}
             </button>
           ))}</div>
-          {!isAdmin && incidenten.length === 0 && (
-            <p style={{ textAlign: 'center', marginTop: '40px', color: '#6b7280' }}>
-              📂 De gegevens zijn nog niet geladen. Vraag een administrator om een Excelbestand te uploaden.
-            </p>
-          )}
         </>
       )}
 
-      {/* OPLOSSINGEN & HANDELINGEN */}
       {page === "oplossingen" && selectedIncident && (
         <div>
           <button onClick={() => setPage("incidenten")} style={{ marginBottom: '20px' }}>⬅ Terug</button>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>
-              💬 Oplossingen voor: {selectedIncident.Beschrijving}
-            </h3>
-            <h4 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>
-              📌 Handelingen
-            </h4>
+            <h3 style={{ fontSize: '20px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
+            <h4 style={{ fontSize: '20px' }}>📌 Handelingen</h4>
           </div>
           <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ flex: 1, minWidth: '400px' }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map((oplossing) => (
-              <div key={oplossing.ID} onClick={() => setSelectedOplossing(oplossing)} style={{ border: selectedOplossing?.ID === oplossing.ID ? '2px solid #00a2a1' : '1px solid #ccc', padding: '12px', borderRadius: '8px', marginBottom: '10px', cursor: 'pointer', backgroundColor: '#f0fdf4' }}>
-                <strong style={{ fontSize: '16px' }}>{oplossing.Beschrijving}</strong>
-                <p style={{ margin: '6px 0 0', color: '#6b7280' }}>💡 Consequentie: {oplossing.Consequentie}</p>
+            <div style={{ flex: 1 }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map((oplossing) => (
+              <div
+                key={oplossing.ID}
+                onClick={() => {
+                  if (!gekozenOplossingen.includes(oplossing.ID)) {
+                    setSelectedOplossing(oplossing);
+                    setGekozenOplossingen(prev => [...prev, oplossing.ID]);
+                  }
+                }}
+                style={{
+                  border: geselecteerdeOplossing?.ID === oplossing.ID ? '2px solid #00a2a1' : '1px solid #ccc',
+                  backgroundColor: gekozenOplossingen.includes(oplossing.ID) ? '#e2e8f0' : '#f0fdf4',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  marginBottom: '10px',
+                  cursor: gekozenOplossingen.includes(oplossing.ID) ? 'not-allowed' : 'pointer'
+                }}>
+                <strong>{gekozenOplossingen.includes(oplossing.ID) ? '✅ ' : ''}{oplossing.Beschrijving}</strong>
               </div>
             ))}</div>
-            <div style={{ flex: 1, minWidth: '400px' }}>
+            <div style={{ flex: 1 }}>
               {selectedOplossing ? (
-                <ul style={{ paddingLeft: '20px' }}>{handelingen.filter((h) => h.OplossingID === selectedOplossing.ID).map((h) => (
-                  <li key={h.ID} style={{ marginBottom: '6px' }}>
-                    ✅ {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
+                <ul>{handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map(h => (
+                  <li key={h.ID}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={afgevinkteHandelingen.includes(h.ID)}
+                        onChange={() => toggleHandeling(h.ID)}
+                        style={{ marginRight: '8px' }}
+                      />
+                      {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
+                    </label>
                   </li>
                 ))}</ul>
               ) : (
-                <p style={{ color: '#6b7280' }}>Klik op een oplossing om de handelingen te bekijken.</p>
+                <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>
               )}
             </div>
           </div>
