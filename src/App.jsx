@@ -39,6 +39,7 @@ export default function IncidentApp() {
     }
   }, []);
 
+  // Excel verwerken
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -57,6 +58,7 @@ export default function IncidentApp() {
     reader.readAsArrayBuffer(file);
   };
 
+  // Logo uploaden
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -67,6 +69,7 @@ export default function IncidentApp() {
     reader.readAsDataURL(file);
   };
 
+  // Login handlers
   const handleLogin = () => {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
@@ -113,42 +116,59 @@ export default function IncidentApp() {
     );
   };
 
-  // Render een enkele handeling als rij met checkbox en afbeelding
+  const renderOplossing = (oplossing) => {
+    const isGekozen = gekozenOplossingen.includes(oplossing.ID);
+    return (
+      <div
+        key={oplossing.ID}
+        onClick={() => {
+          if (!isGekozen) {
+            setSelectedOplossing(oplossing);
+            setGekozenOplossingen((prev) => [...prev, oplossing.ID]);
+          }
+        }}
+        style={{
+          border: selectedOplossing?.ID === oplossing.ID ? "2px solid #00a2a1" : "1px solid #ccc",
+          backgroundColor: isGekozen ? "#e2e8f0" : "#f0fdf4",
+          padding: "12px",
+          borderRadius: "8px",
+          marginBottom: "10px",
+          cursor: isGekozen ? "not-allowed" : "pointer",
+        }}
+      >
+        <strong>{isGekozen ? "✅ " : ""}{oplossing.Beschrijving}</strong>
+        <p style={{ margin: "6px 0 0", color: "#6b7280" }}>💡 {oplossing.Consequentie}</p>
+      </div>
+    );
+  };
+
   const renderHandelingen = () => (
-    <div>
-      <h4 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px' }}>📌 Handelingen</h4>
-      <table style={{ width: '100%' }}>
-        <tbody>
-          {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
-            <tr key={h.ID}>
-              <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '65%' }}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={afgevinkteHandelingen.includes(h.ID)}
-                    onChange={() => toggleHandeling(h.ID)}
-                    style={{ marginRight: '8px', accentColor: '#22c55e' }}
-                  />
-                  {index + 1}. {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
-                </label>
-              </td>
-              <td style={{ width: '35%' }}>
-                {h.AfbeeldingBestand && (
-                  <img
-                    src={`/afbeeldingen/${h.AfbeeldingBestand}`}
-                    alt="Uitleg"
-                    style={{ maxWidth: '100%', maxHeight: '200px', border: '1px solid #ccc', borderRadius: '6px' }}
-                  />
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <table style={{ width: '100%' }}>
+      <tbody>
+        {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
+          <tr key={h.ID}>
+            <td style={{ verticalAlign: 'top', paddingRight: '16px' }}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={afgevinkteHandelingen.includes(h.ID)}
+                  onChange={() => toggleHandeling(h.ID)}
+                  style={{ marginRight: '8px', accentColor: '#22c55e' }}
+                />
+                {index + 1}. {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
+              </label>
+            </td>
+            <td style={{ width: '300px' }}>
+              {h.AfbeeldingBestand && (
+                <img src={`/afbeeldingen/${h.AfbeeldingBestand}`} alt="Uitleg" style={{ maxWidth: '100%', maxHeight: '200px', border: '1px solid #ccc', borderRadius: '6px' }} />
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 
-  // === Inlogscherm ===
   if (!isAuthorized) {
     return (
       <div style={{ maxWidth: '480px', margin: '100px auto', textAlign: 'center', padding: '30px', border: '1px solid #ddd', borderRadius: '10px' }}>
@@ -156,13 +176,7 @@ export default function IncidentApp() {
         <p style={{ marginBottom: '20px', color: '#374151' }}>
           Deze app toont de juiste oplossingen en handelingen bij noodgevallen.
         </p>
-        <input
-          type="password"
-          value={inputPassword}
-          onChange={(e) => setInputPassword(e.target.value)}
-          placeholder="Wachtwoord..."
-          style={{ padding: '10px', width: '100%', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc' }}
-        />
+        <input type="password" value={inputPassword} onChange={(e) => setInputPassword(e.target.value)} placeholder="Wachtwoord..." style={{ padding: '10px', width: '100%', marginBottom: '15px', borderRadius: '5px', border: '1px solid #ccc' }} />
         <div>
           <button onClick={handleLogin} style={{ backgroundColor: '#006e4f', color: 'white', padding: '10px 20px', marginRight: '10px', borderRadius: '5px' }}>Gebruiker</button>
           <button onClick={handleAdminLogin} style={{ backgroundColor: '#00a2a1', color: 'white', padding: '10px 20px', borderRadius: '5px' }}>Admin</button>
@@ -171,7 +185,6 @@ export default function IncidentApp() {
     );
   }
 
-  // === Hoofdinterface ===
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -225,6 +238,7 @@ export default function IncidentApp() {
           }} style={{ marginBottom: '20px' }}>⬅ Terug</button>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <h3 style={{ fontSize: '20px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
+            <h4 style={{ fontSize: '20px' }}>📌 Handelingen</h4>
           </div>
           <div style={{ display: 'flex', gap: '20px' }}>
             <div style={{ flex: 1 }}>{oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}</div>
