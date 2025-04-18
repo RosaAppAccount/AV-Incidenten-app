@@ -24,7 +24,6 @@ export default function IncidentApp() {
   const [page, setPage] = useState("incidenten");
   const [logoURL, setLogoURL] = useState("/logo.png");
 
-  // Gegevens laden vanuit localStorage bij het opstarten van de app
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     const opgeslagenLogo = localStorage.getItem("logoURL");
@@ -39,7 +38,7 @@ export default function IncidentApp() {
     }
   }, []);
 
-  // Excelbestand verwerken
+  // Excelbestand inlezen
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -58,7 +57,7 @@ export default function IncidentApp() {
     reader.readAsArrayBuffer(file);
   };
 
-  // Nieuw logo uploaden
+  // Logo uploaden
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -69,7 +68,7 @@ export default function IncidentApp() {
     reader.readAsDataURL(file);
   };
 
-  // Loginfuncties
+  // Login logica
   const handleLogin = () => {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
@@ -116,7 +115,7 @@ export default function IncidentApp() {
     );
   };
 
-  // Een enkele oplossingskaart renderen
+  // Render een enkele oplossing
   const renderOplossing = (oplossing) => {
     const isGekozen = gekozenOplossingen.includes(oplossing.ID);
     return (
@@ -143,13 +142,14 @@ export default function IncidentApp() {
     );
   };
 
-  // De handelingenlijst renderen met checkboxes en afbeelding
+  // Render handelingenlijst
   const renderHandelingen = () => (
     <table style={{ width: '100%' }}>
       <tbody>
         {handelingen.filter(h => h.OplossingID === selectedOplossing.ID).map((h, index) => (
           <tr key={h.ID}>
-            <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '300px' }}>
+            {/* Kolom met checkbox + tekst */}
+            <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '500px' }}>
               <label>
                 <input
                   type="checkbox"
@@ -160,6 +160,7 @@ export default function IncidentApp() {
                 {index + 1}. {h.Beschrijving} — <span style={{ color: '#15803d' }}>{h.Verantwoordelijke}</span>
               </label>
             </td>
+            {/* Kolom met afbeelding */}
             <td>
               {h.AfbeeldingBestand && (
                 <img src={`/afbeeldingen/${h.AfbeeldingBestand}`} alt="Uitleg" style={{ maxWidth: '100%', maxHeight: '200px', border: '1px solid #ccc', borderRadius: '6px' }} />
@@ -171,7 +172,7 @@ export default function IncidentApp() {
     </table>
   );
 
-  // Inlogscherm tonen als niet ingelogd
+  // Inlogscherm
   if (!isAuthorized) {
     return (
       <div style={{ maxWidth: '480px', margin: '100px auto', textAlign: 'center', padding: '30px', border: '1px solid #ddd', borderRadius: '10px' }}>
@@ -188,7 +189,6 @@ export default function IncidentApp() {
     );
   }
 
-  // Hoofdscherm
   return (
     <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
       {/* Header */}
@@ -200,7 +200,7 @@ export default function IncidentApp() {
         <button onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '5px' }}>Terug naar inlogscherm</button>
       </div>
 
-      {/* Adminopties */}
+      {/* Adminsectie */}
       {isAdmin && (
         <div style={{ margin: '20px 0', textAlign: 'center' }}>
           <h2>🖼️ Upload een nieuw logo</h2>
@@ -217,7 +217,7 @@ export default function IncidentApp() {
         </div>
       )}
 
-      {/* Incidentenlijst */}
+      {/* Incidentselectie */}
       {page === "incidenten" && (
         <>
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>📋 Kies een incident uit de lijst</h2>
@@ -237,7 +237,7 @@ export default function IncidentApp() {
         </>
       )}
 
-      {/* Oplossingen en handelingen */}
+      {/* Oplossingen + Handelingen layout aangepast */}
       {page === "oplossingen" && selectedIncident && (
         <div>
           <button onClick={() => {
@@ -246,19 +246,25 @@ export default function IncidentApp() {
             setSelectedOplossing(null);
           }} style={{ marginBottom: '20px' }}>⬅ Terug</button>
 
-          {/* Titels links uitgelijnd */}
-          <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '20px' }}>
-            <h3 style={{ fontSize: '20px', width: '300px' }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
-            <h4 style={{ fontSize: '20px', width: '300px', textAlign: 'left' }}>📌 Handelingen</h4>
+          {/* Titelrij met vaste kolombreedte */}
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ width: '500px' }}>
+              <h3 style={{ fontSize: '20px', margin: 0 }}>💬 Opties: {selectedIncident.Beschrijving}</h3>
+            </div>
+            <div style={{ width: '500px' }}>
+              <h4 style={{ fontSize: '20px', margin: 0 }}>📌 Handelingen</h4>
+            </div>
           </div>
 
-          {/* Inhoud kolommen */}
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-            <div style={{ minWidth: '300px', maxWidth: '300px' }}>
+          {/* Inhoud met vaste kolommen */}
+          <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+            <div style={{ width: '500px' }}>
               {oplossingen.filter((o) => o.IncidentID === selectedIncident.ID).map(renderOplossing)}
             </div>
-            <div style={{ minWidth: '300px', maxWidth: '300px' }}>
-              {selectedOplossing ? renderHandelingen() : <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>}
+            <div style={{ width: '500px' }}>
+              {selectedOplossing ? renderHandelingen() : (
+                <p style={{ color: '#6b7280' }}>Klik op een optie om de handelingen te bekijken.</p>
+              )}
             </div>
           </div>
         </div>
