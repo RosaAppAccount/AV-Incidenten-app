@@ -222,7 +222,7 @@ export default function IncidentApp() {
                 setPage("oplossingen");
                 setGekozenOplossingen([]);
               }}
-              style={{ display: 'block', marginBottom: '8px', padding: '10px 16px', backgroundColor: '#006e4f', color: 'white', borderRadius: '6px', width: '100%' }}>
+              style={{ display: 'block', marginBottom: '8px', padding: '10px 16px', backgroundColor: '#008000', color: 'white', borderRadius: '6px', width: '100%' }}>
               {incident.Beschrijving}
             </button>
           ))}</div>
