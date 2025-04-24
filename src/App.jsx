@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function IncidentApp() {
-  // App-status
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
@@ -14,58 +13,46 @@ export default function IncidentApp() {
   const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
   const [afgevinkteHandelingen, setAfgevinkteHandelingen] = useState([]);
 
-  // Login & admin
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
-  const [userPassword, setUserPassword] = useState("beheer2025");
+  const [userPassword] = useState("beheer2025");
   const [adminPassword] = useState("admin123");
 
   const [page, setPage] = useState("incidenten");
   const [logoURL, setLogoURL] = useState("/logo.png");
 
-  // Laad standaard Excel en logo bij het opstarten
   useEffect(() => {
-    // Haal standaard Excel uit de public map
     fetch("/standaard_excel.xlsx")
       .then((res) => res.arrayBuffer())
       .then((data) => {
         const workbook = XLSX.read(data, { type: "array" });
-        const incidentenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Incidenten"]);
-        const oplossingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Oplossingen"]);
-        const handelingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Handelingen"]);
-        setIncidenten(incidentenSheet);
-        setOplossingen(oplossingenSheet);
-        setHandelingen(handelingenSheet);
+        setIncidenten(XLSX.utils.sheet_to_json(workbook.Sheets["Incidenten"]));
+        setOplossingen(XLSX.utils.sheet_to_json(workbook.Sheets["Oplossingen"]));
+        setHandelingen(XLSX.utils.sheet_to_json(workbook.Sheets["Handelingen"]));
       });
 
-    // Zet standaard logo
     setLogoURL("/logo.png");
   }, []);
 
-  // Admin upload: tijdelijk Excel in geheugen laden
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onload = (evt) => {
       const data = new Uint8Array(evt.target.result);
       const workbook = XLSX.read(data, { type: "array" });
-      const incidentenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Incidenten"]);
-      const oplossingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Oplossingen"]);
-      const handelingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Handelingen"]);
-      setIncidenten(incidentenSheet);
-      setOplossingen(oplossingenSheet);
-      setHandelingen(handelingenSheet);
+      setIncidenten(XLSX.utils.sheet_to_json(workbook.Sheets["Incidenten"]));
+      setOplossingen(XLSX.utils.sheet_to_json(workbook.Sheets["Oplossingen"]));
+      setHandelingen(XLSX.utils.sheet_to_json(workbook.Sheets["Handelingen"]));
     };
     reader.readAsArrayBuffer(file);
   };
 
-  // Admin upload: tijdelijk logo
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
-      setLogoURL(reader.result); // Alleen voor de sessie
+      setLogoURL(reader.result);
     };
     reader.readAsDataURL(file);
   };
@@ -174,7 +161,7 @@ export default function IncidentApp() {
 
   if (!isAuthorized) {
     return (
-      <div style={{ maxWidth: '480px', margin: '100px auto', textAlign: 'center', padding: '30px', border: '1px solid #ddd', borderRadius: '10px' }}>
+      <div style={{ maxWidth: '480px', margin: '100px auto', textAlign: 'center', padding: '30px', border: '1px solid #ddd', borderRadius: '10px', backgroundColor: 'white', color: 'black' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#006e4f' }}>🛠️ Incidentenbeheer App</h1>
         <p style={{ marginBottom: '20px', color: '#374151' }}>
           Deze app toont de juiste oplossingen en handelingen bij noodgevallen.
@@ -189,7 +176,7 @@ export default function IncidentApp() {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
+    <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px', backgroundColor: 'white', color: 'black' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src={logoURL} alt="Logo" style={{ width: '40px', height: '40px' }} />
