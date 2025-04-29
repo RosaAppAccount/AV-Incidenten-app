@@ -11,29 +11,38 @@ export default function IncidentApp() {
   const [afgevinkteHandelingen, setAfgevinkteHandelingen] = useState([]);
 
   // Laad Excel of lokale opslag
-  useEffect(() => {
-    const opgeslagenData = localStorage.getItem("incidentenData");
-    if (opgeslagenData) {
-      const { incidenten, oplossingen, handelingen } = JSON.parse(opgeslagenData);
-      setIncidenten(incidenten);
-      setOplossingen(oplossingen);
-      setHandelingen(handelingen);
-    } else {
-      fetch("/Gegevens_avIncidentenApp.xlsx")
-        .then((res) => res.arrayBuffer())
-        .then((data) => {
-          const workbook = XLSX.read(data, { type: "array" });
-          const incidentenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Incidenten"]);
-          const oplossingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Oplossingen"]);
-          const handelingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Handelingen"]);
-          const dataObj = { incidenten: incidentenSheet, oplossingen: oplossingenSheet, handelingen: handelingenSheet };
-          localStorage.setItem("incidentenData", JSON.stringify(dataObj));
-          setIncidenten(incidentenSheet);
-          setOplossingen(oplossingenSheet);
-          setHandelingen(handelingenSheet);
-        });
-    }
-  }, []);
+useEffect(() => {
+  const opgeslagenData = localStorage.getItem("incidentenData");
+
+  if (opgeslagenData) {
+    const { incidenten, oplossingen, handelingen } = JSON.parse(opgeslagenData);
+    setIncidenten(incidenten);
+    setOplossingen(oplossingen);
+    setHandelingen(handelingen);
+  } else {
+    fetch("/Gegevens_avIncidentenApp.xlsx")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Excelbestand niet gevonden.");
+        }
+        return res.arrayBuffer();
+      })
+      .then((data) => {
+        const workbook = XLSX.read(data, { type: "array" });
+        const incidentenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Incidenten"]);
+        const oplossingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Oplossingen"]);
+        const handelingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Handelingen"]);
+        const dataObj = { incidenten: incidentenSheet, oplossingen: oplossingenSheet, handelingen: handelingenSheet };
+        localStorage.setItem("incidentenData", JSON.stringify(dataObj));
+        setIncidenten(incidentenSheet);
+        setOplossingen(oplossingenSheet);
+        setHandelingen(handelingenSheet);
+      })
+      .catch((error) => {
+        console.error("Fout bij laden standaard Excel:", error);
+      });
+  }
+}, []);
 
   const toggleHandeling = (id) => {
     setAfgevinkteHandelingen((prev) =>
