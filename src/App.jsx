@@ -13,6 +13,7 @@ export default function IncidentApp() {
   // Laad Excel of lokale opslag
 useEffect(() => {
   const opgeslagenData = localStorage.getItem("incidentenData");
+  const opgeslagenLogo = localStorage.getItem("logoURL");
 
   if (opgeslagenData) {
     const { incidenten, oplossingen, handelingen } = JSON.parse(opgeslagenData);
@@ -20,14 +21,19 @@ useEffect(() => {
     setOplossingen(oplossingen);
     setHandelingen(handelingen);
   } else {
+    // Probeer Excel van de server te laden
     fetch("/Gegevens_avIncidentenApp.xlsx")
       .then((res) => {
         if (!res.ok) {
-          throw new Error("Excelbestand niet gevonden.");
+          console.error("Excelbestand niet gevonden op server.");
+          return null; // Geen crash, gewoon door
         }
         return res.arrayBuffer();
       })
       .then((data) => {
+        if (!data) {
+          return; // Als er geen data is, stop hier
+        }
         const workbook = XLSX.read(data, { type: "array" });
         const incidentenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Incidenten"]);
         const oplossingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Oplossingen"]);
@@ -39,8 +45,12 @@ useEffect(() => {
         setHandelingen(handelingenSheet);
       })
       .catch((error) => {
-        console.error("Fout bij laden standaard Excel:", error);
+        console.error("Fout bij het laden van het standaard Excelbestand:", error);
       });
+  }
+
+  if (opgeslagenLogo) {
+    setLogoURL(opgeslagenLogo);
   }
 }, []);
 
