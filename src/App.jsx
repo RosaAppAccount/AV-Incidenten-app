@@ -1,18 +1,16 @@
-// AV Incidenten App - hoofdcomponent
-// Toont incidenten, opties en handelingen. Gekozen opties zijn duidelijk zichtbaar!
-
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
-export default function App() {
+export default function IncidentApp() {
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [selectedOplossing, setSelectedOplossing] = useState(null);
   const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
+  const [afgevinkteHandelingen, setAfgevinkteHandelingen] = useState([]);
 
-  // ✅ Bij het laden: check localStorage of laad standaardbestand
+  // Laad Excel of lokale opslag
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     if (opgeslagenData) {
@@ -22,14 +20,14 @@ export default function App() {
       setHandelingen(handelingen);
     } else {
       fetch("/Gegevens_avIncidentenApp.xlsx")
-        .then(res => res.arrayBuffer())
-        .then(data => {
-          const wb = XLSX.read(data, { type: "array" });
-          const incidentenSheet = XLSX.utils.sheet_to_json(wb.Sheets["Incidenten"]);
-          const oplossingenSheet = XLSX.utils.sheet_to_json(wb.Sheets["Oplossingen"]);
-          const handelingenSheet = XLSX.utils.sheet_to_json(wb.Sheets["Handelingen"]);
-          const alles = { incidenten: incidentenSheet, oplossingen: oplossingenSheet, handelingen: handelingenSheet };
-          localStorage.setItem("incidentenData", JSON.stringify(alles));
+        .then((res) => res.arrayBuffer())
+        .then((data) => {
+          const workbook = XLSX.read(data, { type: "array" });
+          const incidentenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Incidenten"]);
+          const oplossingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Oplossingen"]);
+          const handelingenSheet = XLSX.utils.sheet_to_json(workbook.Sheets["Handelingen"]);
+          const dataObj = { incidenten: incidentenSheet, oplossingen: oplossingenSheet, handelingen: handelingenSheet };
+          localStorage.setItem("incidentenData", JSON.stringify(dataObj));
           setIncidenten(incidentenSheet);
           setOplossingen(oplossingenSheet);
           setHandelingen(handelingenSheet);
@@ -37,33 +35,121 @@ export default function App() {
     }
   }, []);
 
-  return (
-    <div style={{ maxWidth: "1000px", margin: "auto", padding: "20px" }}>
-      {/* 🔊 Titel */}
-      <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f", marginBottom: "30px" }}>
-        🔊 AV Incidenten App
-      </h1>
+  const toggleHandeling = (id) => {
+    setAfgevinkteHandelingen((prev) =>
+      prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]
+    );
+  };
 
-      {/* 📋 Incidentenlijst */}
-      {!selectedIncident && (
+  const renderOplossing = (oplossing) => {
+    const isGekozen = gekozenOplossingen.includes(oplossing.ID);
+    const isActief = selectedOplossing?.ID === oplossing.ID;
+    const magKlikken = !isGekozen || isActief;
+
+    return (
+      <div
+        key={oplossing.ID}
+        onClick={() => {
+          if (magKlikken) {
+            setSelectedOplossing(oplossing);
+            if (!isGekozen) {
+              setGekozenOplossingen((prev) => [...prev, oplossing.ID]);
+            }
+          }
+        }}
+        style={{
+          backgroundColor: "#f8fafc",
+          border: isActief ? "3px solid #2563eb" : "1px solid #ccc",
+          padding: "12px",
+          borderRadius: "8px",
+          marginBottom: "10px",
+          cursor: magKlikken ? "pointer" : "not-allowed",
+          opacity: magKlikken ? 1 : 0.6,
+        }}
+      >
+        <strong>{isGekozen ? "✅ " : ""}{oplossing.Beschrijving}</strong>
+        <p style={{ margin: "6px 0 0", color: "#6b7280" }}>💡 {oplossing.Consequentie}</p>
+      </div>
+    );
+  };
+
+  const renderHandelingen = () => (
+    <div>
+      <h4>📌 Handelingen</h4>
+      <table style={{ width: "100%" }}>
+        <tbody>
+          {handelingen
+            .filter((h) => h.OplossingID === selectedOplossing?.ID)
+            .map((h, index) => (
+              <tr key={h.ID}>
+                <td style={{ verticalAlign: "top", paddingRight: "16px", width: "65%" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                    <input
+                      type="checkbox"
+                      checked={afgevinkteHandelingen.includes(h.ID)}
+                      onChange={() => toggleHandeling(h.ID)}
+                      style={{ marginTop: "5px", accentColor: "#22c55e" }}
+                    />
+                    <div>
+                      <span>
+                        {index + 1}. {h.Beschrijving} —{" "}
+                        <span style={{ color: "#15803d" }}>{h.Verantwoordelijke}</span>
+                      </span>
+                      {h.Handleiding && (
+                        <div style={{ marginTop: "6px" }}>
+                          📄 <a href={`/handleidingen/${h.Handleiding}`} target="_blank" rel="noreferrer">Bekijk handleiding</a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td style={{ width: "35%" }}>
+                  {h.AfbeeldingBestand && (
+                    <img
+                      src={`/afbeeldingen/${h.AfbeeldingBestand}`}
+                      alt="Uitleg"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "200px",
+                        border: "1px solid #ccc",
+                        borderRadius: "6px"
+                      }}
+                    />
+                  )}
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: "1200px", margin: "auto", padding: "20px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <img src="/logo.png" alt="Logo" style={{ width: "40px", height: "40px" }} />
+        <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f" }}>🔊 AV Incidenten App</h1>
+      </div>
+
+      {page === "incidenten" && (
         <>
-          <h2 style={{ fontSize: "20px", marginBottom: "10px" }}>Kies een incident:</h2>
-          {incidenten.map(incident => (
+          <h2>📋 Kies een incident</h2>
+          {incidenten.map((incident) => (
             <button
               key={incident.ID}
               onClick={() => {
                 setSelectedIncident(incident);
                 setSelectedOplossing(null);
-                setGekozenOplossingen([]);
+                setPage("oplossingen");
               }}
               style={{
                 display: "block",
-                width: "100%",
                 marginBottom: "8px",
                 padding: "10px 16px",
                 backgroundColor: "#006e4f",
                 color: "white",
-                borderRadius: "6px"
+                borderRadius: "6px",
+                width: "100%",
               }}
             >
               {incident.Beschrijving}
@@ -72,90 +158,15 @@ export default function App() {
         </>
       )}
 
-      {/* 💡 Opties */}
-      {selectedIncident && !selectedOplossing && (
-        <>
-          <button onClick={() => setSelectedIncident(null)} style={{ marginBottom: "20px" }}>
-            ⬅ Terug
-          </button>
-          <h2>Opties: {selectedIncident.Beschrijving}</h2>
+      {page === "oplossingen" && selectedIncident && (
+        <div>
+          <button onClick={() => setSelectedOplossing(null)} style={{ marginBottom: "20px" }}>⬅ Terug</button>
+          <h3>💬 Opties: {selectedIncident.Beschrijving}</h3>
           {oplossingen
-            .filter(o => o.IncidentID === selectedIncident.ID)
-            .map(oplossing => {
-            const renderOplossing = (oplossing) => {
-              const isGekozen = gekozenOplossingen.includes(oplossing.ID);
-              const isActief = selectedOplossing?.ID === oplossing.ID;
-            
-              const magKlikken = !isGekozen || isActief;
-            
-              return (
-                <div
-                  key={oplossing.ID}
-                  onClick={() => {
-                    if (magKlikken) {
-                      setSelectedOplossing(oplossing);
-                      // Alleen toevoegen aan gekozen lijst als hij nog niet gekozen was
-                      if (!gekozenOplossingen.includes(oplossing.ID)) {
-                        setGekozenOplossingen(prev => [...prev, oplossing.ID]);
-                      }
-                    }
-                  }}
-                  style={{
-                    backgroundColor: isGekozen ? "#e2e8f0" : "#f0fdf4",
-                    padding: "12px",
-                    border: isActief ? "3px solid #2563eb" : "1px solid #ccc", // 💙 blauwe rand als actief
-                    borderRadius: "8px",
-                    marginBottom: "10px",
-                    cursor: magKlikken ? "pointer" : "not-allowed",
-                    opacity: magKlikken ? 1 : 0.6,
-                  }}
-                >
-                  <strong>{isGekozen ? "✅ " : ""}{oplossing.Beschrijving}</strong>
-                  <p style={{ margin: "6px 0 0", color: "#6b7280" }}>💡 {oplossing.Consequentie}</p>
-                </div>
-              );
-            };
-
-            })}
-        </>
-      )}
-
-      {/* 📌 Handelingen */}
-      {selectedOplossing && (
-        <>
-          <button onClick={() => setSelectedOplossing(null)} style={{ marginBottom: "20px" }}>
-            ⬅ Terug
-          </button>
-          <h2>📌 Handelingen</h2>
-          <ul>
-            {handelingen
-              .filter(h => h.OplossingID === selectedOplossing.ID)
-              .map((h, index) => (
-                <li key={h.ID} style={{ marginBottom: "12px" }}>
-                  <strong>{index + 1}. {h.Beschrijving}</strong> — <span style={{ color: "#15803d" }}>{h.Verantwoordelijke}</span>
-                  {h.Handleiding && (
-                    <div>
-                      📄 <a href={`/handleidingen/${h.Handleiding}`} target="_blank" rel="noreferrer">Bekijk handleiding</a>
-                    </div>
-                  )}
-                  {h.AfbeeldingBestand && (
-                    <div>
-                      <img
-                        src={`/afbeeldingen/${h.AfbeeldingBestand}`}
-                        alt="Uitleg"
-                        style={{
-                          maxWidth: "300px",
-                          maxHeight: "200px",
-                          borderRadius: "6px",
-                          marginTop: "8px"
-                        }}
-                      />
-                    </div>
-                  )}
-                </li>
-              ))}
-          </ul>
-        </>
+            .filter((o) => o.IncidentID === selectedIncident.ID)
+            .map(renderOplossing)}
+          {selectedOplossing && renderHandelingen()}
+        </div>
       )}
     </div>
   );
