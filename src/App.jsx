@@ -82,36 +82,40 @@ export default function App() {
           {oplossingen
             .filter(o => o.IncidentID === selectedIncident.ID)
             .map(oplossing => {
+            const renderOplossing = (oplossing) => {
               const isGekozen = gekozenOplossingen.includes(oplossing.ID);
               const isActief = selectedOplossing?.ID === oplossing.ID;
-
+            
+              const magKlikken = !isGekozen || isActief;
+            
               return (
                 <div
                   key={oplossing.ID}
                   onClick={() => {
-                    if (!isGekozen) {
+                    if (magKlikken) {
                       setSelectedOplossing(oplossing);
-                      setGekozenOplossingen(prev => [...prev, oplossing.ID]);
+                      // Alleen toevoegen aan gekozen lijst als hij nog niet gekozen was
+                      if (!gekozenOplossingen.includes(oplossing.ID)) {
+                        setGekozenOplossingen(prev => [...prev, oplossing.ID]);
+                      }
                     }
                   }}
                   style={{
-                    backgroundColor: isGekozen ? "#e2e8f0" : "#f0fdf4", // andere kleur als gekozen
+                    backgroundColor: isGekozen ? "#e2e8f0" : "#f0fdf4",
                     padding: "12px",
-                    border: isActief ? "3px solid #2563eb" : "1px solid #ccc", // dikke blauwe rand als actief
+                    border: isActief ? "3px solid #2563eb" : "1px solid #ccc", // 💙 blauwe rand als actief
                     borderRadius: "8px",
                     marginBottom: "10px",
-                    cursor: isGekozen ? "not-allowed" : "pointer",
-                    opacity: isGekozen ? 0.6 : 1, // lichter maken als gekozen
+                    cursor: magKlikken ? "pointer" : "not-allowed",
+                    opacity: magKlikken ? 1 : 0.6,
                   }}
                 >
-                  <strong>
-                    {isGekozen ? "✅ " : ""} {oplossing.Beschrijving}
-                  </strong>
-                  <p style={{ margin: "6px 0 0", color: "#6b7280" }}>
-                    💡 {oplossing.Consequentie}
-                  </p>
+                  <strong>{isGekozen ? "✅ " : ""}{oplossing.Beschrijving}</strong>
+                  <p style={{ margin: "6px 0 0", color: "#6b7280" }}>💡 {oplossing.Consequentie}</p>
                 </div>
               );
+            };
+
             })}
         </>
       )}
