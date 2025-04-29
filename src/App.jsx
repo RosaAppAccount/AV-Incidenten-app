@@ -1,18 +1,18 @@
 // AV Incidenten App - hoofdcomponent
-// Toont incidenten, opties (oplossingen) en handelingen inclusief afbeeldingen en handleidingen
+// Toont incidenten, opties en handelingen. Gekozen opties zijn duidelijk zichtbaar!
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function App() {
-  // ⬇️ State voor data en navigatie
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [selectedOplossing, setSelectedOplossing] = useState(null);
+  const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
 
-  // ✅ Data laden bij opstart, eerst uit localStorage, anders uit standaardbestand
+  // ✅ Bij het laden: check localStorage of laad standaardbestand
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     if (opgeslagenData) {
@@ -21,7 +21,6 @@ export default function App() {
       setOplossingen(oplossingen);
       setHandelingen(handelingen);
     } else {
-      // 📥 Als geen data in localStorage → laad standaardbestand uit public
       fetch("/Gegevens_avIncidentenApp.xlsx")
         .then(res => res.arrayBuffer())
         .then(data => {
@@ -40,7 +39,7 @@ export default function App() {
 
   return (
     <div style={{ maxWidth: "1000px", margin: "auto", padding: "20px" }}>
-      {/* 🔊 Header met nieuwe titel */}
+      {/* 🔊 Titel */}
       <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f", marginBottom: "30px" }}>
         🔊 AV Incidenten App
       </h1>
@@ -55,6 +54,7 @@ export default function App() {
               onClick={() => {
                 setSelectedIncident(incident);
                 setSelectedOplossing(null);
+                setGekozenOplossingen([]);
               }}
               style={{
                 display: "block",
@@ -72,7 +72,7 @@ export default function App() {
         </>
       )}
 
-      {/* 💡 Oplossingen */}
+      {/* 💡 Opties */}
       {selectedIncident && !selectedOplossing && (
         <>
           <button onClick={() => setSelectedIncident(null)} style={{ marginBottom: "20px" }}>
@@ -81,27 +81,42 @@ export default function App() {
           <h2>Opties: {selectedIncident.Beschrijving}</h2>
           {oplossingen
             .filter(o => o.IncidentID === selectedIncident.ID)
-            .map(o => (
-              <div
-                key={o.ID}
-                onClick={() => setSelectedOplossing(o)}
-                style={{
-                  backgroundColor: "#f0fdf4",
-                  padding: "12px",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  marginBottom: "10px",
-                  cursor: "pointer"
-                }}
-              >
-                <strong>{o.Beschrijving}</strong>
-                <p style={{ margin: "6px 0 0", color: "#6b7280" }}>💡 {o.Consequentie}</p>
-              </div>
-            ))}
+            .map(oplossing => {
+              const isGekozen = gekozenOplossingen.includes(oplossing.ID);
+              const isActief = selectedOplossing?.ID === oplossing.ID;
+
+              return (
+                <div
+                  key={oplossing.ID}
+                  onClick={() => {
+                    if (!isGekozen) {
+                      setSelectedOplossing(oplossing);
+                      setGekozenOplossingen(prev => [...prev, oplossing.ID]);
+                    }
+                  }}
+                  style={{
+                    backgroundColor: isGekozen ? "#e2e8f0" : "#f0fdf4", // andere kleur als gekozen
+                    padding: "12px",
+                    border: isActief ? "3px solid #2563eb" : "1px solid #ccc", // dikke blauwe rand als actief
+                    borderRadius: "8px",
+                    marginBottom: "10px",
+                    cursor: isGekozen ? "not-allowed" : "pointer",
+                    opacity: isGekozen ? 0.6 : 1, // lichter maken als gekozen
+                  }}
+                >
+                  <strong>
+                    {isGekozen ? "✅ " : ""} {oplossing.Beschrijving}
+                  </strong>
+                  <p style={{ margin: "6px 0 0", color: "#6b7280" }}>
+                    💡 {oplossing.Consequentie}
+                  </p>
+                </div>
+              );
+            })}
         </>
       )}
 
-      {/* ✅ Handelingen */}
+      {/* 📌 Handelingen */}
       {selectedOplossing && (
         <>
           <button onClick={() => setSelectedOplossing(null)} style={{ marginBottom: "20px" }}>
