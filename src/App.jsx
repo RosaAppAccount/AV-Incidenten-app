@@ -1,6 +1,3 @@
-// AV Incidenten App – hoofdcomponent
-// Toont incidenten, oplossingen en handelingen inclusief afbeeldingen en handleidingen
-
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
@@ -11,6 +8,7 @@ export default function App() {
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [selectedOplossing, setSelectedOplossing] = useState(null);
   const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
+  const [actieveOplossingID, setActieveOplossingID] = useState(null); // ➕ bewaart actieve optie
 
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
@@ -36,12 +34,13 @@ export default function App() {
     }
   }, []);
 
-  // ✅ Als gebruiker klikt op een oplossing
+  // ⬇️ Oplossing selecteren
   const handleSelectOplossing = (oplossing) => {
     if (!gekozenOplossingen.includes(oplossing.ID)) {
       setGekozenOplossingen((prev) => [...prev, oplossing.ID]);
     }
     setSelectedOplossing(oplossing);
+    setActieveOplossingID(oplossing.ID); // ➕ onthoud laatste actieve ID
   };
 
   return (
@@ -50,7 +49,7 @@ export default function App() {
         🔊 AV Incidenten App
       </h1>
 
-      {/* 📋 Incidentenlijst */}
+      {/* Incidentenlijst */}
       {!selectedIncident && (
         <>
           <h2 style={{ fontSize: "20px", marginBottom: "10px" }}>Kies een incident:</h2>
@@ -61,6 +60,7 @@ export default function App() {
                 setSelectedIncident(incident);
                 setSelectedOplossing(null);
                 setGekozenOplossingen([]);
+                setActieveOplossingID(null); // reset actieve oplossing
               }}
               style={{
                 display: "block",
@@ -78,10 +78,17 @@ export default function App() {
         </>
       )}
 
-      {/* 💡 Oplossingen */}
-      {selectedIncident && !selectedOplossing && (
+      {/* Oplossingen */}
+      {selectedIncident && (
         <>
-          <button onClick={() => setSelectedIncident(null)} style={{ marginBottom: "20px" }}>
+          <button
+            onClick={() => {
+              setSelectedIncident(null);
+              setSelectedOplossing(null);
+              setActieveOplossingID(null);
+            }}
+            style={{ marginBottom: "20px" }}
+          >
             ⬅ Terug
           </button>
           <h2>Opties: {selectedIncident.Beschrijving}</h2>
@@ -89,23 +96,24 @@ export default function App() {
             .filter((o) => o.IncidentID === selectedIncident.ID)
             .map((o) => {
               const isGekozen = gekozenOplossingen.includes(o.ID);
-              const isSelected = selectedOplossing?.ID === o.ID;
+              const isActief = actieveOplossingID === o.ID;
+
               return (
                 <div
                   key={o.ID}
                   onClick={() => {
-                    if (!isGekozen || isSelected) {
+                    if (!isGekozen || isActief) {
                       handleSelectOplossing(o);
                     }
                   }}
                   style={{
-                    backgroundColor: isSelected ? "#ecfdf5" : isGekozen ? "#e5e7eb" : "#f0fdf4",
+                    backgroundColor: isActief ? "#ecfdf5" : isGekozen ? "#e5e7eb" : "#f0fdf4",
                     padding: "12px",
-                    border: `3px solid ${isSelected ? "#22c55e" : "#ccc"}`,
+                    border: `3px solid ${isActief ? "#22c55e" : "#ccc"}`,
                     borderRadius: "8px",
                     marginBottom: "10px",
-                    cursor: isGekozen && !isSelected ? "not-allowed" : "pointer",
-                    opacity: isGekozen && !isSelected ? 0.6 : 1,
+                    cursor: isGekozen && !isActief ? "not-allowed" : "pointer",
+                    opacity: isGekozen && !isActief ? 0.6 : 1,
                   }}
                 >
                   <strong>{isGekozen ? "✅ " : ""}{o.Beschrijving}</strong>
@@ -116,10 +124,13 @@ export default function App() {
         </>
       )}
 
-      {/* ✅ Handelingen */}
+      {/* Handelingen */}
       {selectedOplossing && (
         <>
-          <button onClick={() => setSelectedOplossing(null)} style={{ marginBottom: "20px" }}>
+          <button
+            onClick={() => setSelectedOplossing(null)} // Let op: we behouden actieveOplossingID
+            style={{ marginBottom: "20px" }}
+          >
             ⬅ Terug
           </button>
           <h2>📌 Handelingen</h2>
@@ -128,10 +139,14 @@ export default function App() {
               .filter((h) => h.OplossingID === selectedOplossing.ID)
               .map((h, index) => (
                 <li key={h.ID} style={{ marginBottom: "12px" }}>
-                  <strong>{index + 1}. {h.Beschrijving}</strong> — <span style={{ color: "#15803d" }}>{h.Verantwoordelijke}</span>
+                  <strong>{index + 1}. {h.Beschrijving}</strong> —{" "}
+                  <span style={{ color: "#15803d" }}>{h.Verantwoordelijke}</span>
                   {h.Handleiding && (
                     <div>
-                      📄 <a href={`/handleidingen/${h.Handleiding}`} target="_blank" rel="noreferrer">Bekijk handleiding</a>
+                      📄{" "}
+                      <a href={`/handleidingen/${h.Handleiding}`} target="_blank" rel="noreferrer">
+                        Bekijk handleiding
+                      </a>
                     </div>
                   )}
                   {h.AfbeeldingBestand && (
