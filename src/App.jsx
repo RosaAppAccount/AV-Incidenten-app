@@ -1,11 +1,10 @@
 // AV Incidenten App – hoofdcomponent
-// Toont incidenten, opties (oplossingen) en handelingen inclusief afbeeldingen en handleidingen
+// Toont incidenten, oplossingen en handelingen inclusief afbeeldingen en handleidingen
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function App() {
-  // ⬇️ App state
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
@@ -13,7 +12,6 @@ export default function App() {
   const [selectedOplossing, setSelectedOplossing] = useState(null);
   const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
 
-  // ⬇️ Data laden bij opstart
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     if (opgeslagenData) {
@@ -38,12 +36,12 @@ export default function App() {
     }
   }, []);
 
-  // ✅ Bij kiezen oplossing → activeer en markeer als gekozen
+  // ✅ Als gebruiker klikt op een oplossing
   const handleSelectOplossing = (oplossing) => {
+    if (!gekozenOplossingen.includes(oplossing.ID)) {
+      setGekozenOplossingen((prev) => [...prev, oplossing.ID]);
+    }
     setSelectedOplossing(oplossing);
-    setGekozenOplossingen((prev) =>
-      prev.includes(oplossing.ID) ? prev : [...prev, oplossing.ID]
-    );
   };
 
   return (
@@ -62,6 +60,7 @@ export default function App() {
               onClick={() => {
                 setSelectedIncident(incident);
                 setSelectedOplossing(null);
+                setGekozenOplossingen([]);
               }}
               style={{
                 display: "block",
@@ -70,7 +69,7 @@ export default function App() {
                 padding: "10px 16px",
                 backgroundColor: "#006e4f",
                 color: "white",
-                borderRadius: "6px"
+                borderRadius: "6px",
               }}
             >
               {incident.Beschrijving}
@@ -90,20 +89,23 @@ export default function App() {
             .filter((o) => o.IncidentID === selectedIncident.ID)
             .map((o) => {
               const isGekozen = gekozenOplossingen.includes(o.ID);
+              const isSelected = selectedOplossing?.ID === o.ID;
               return (
                 <div
                   key={o.ID}
                   onClick={() => {
-                    if (!isGekozen) handleSelectOplossing(o);
+                    if (!isGekozen || isSelected) {
+                      handleSelectOplossing(o);
+                    }
                   }}
                   style={{
-                    backgroundColor: isGekozen ? "#e5e7eb" : "#f0fdf4",
+                    backgroundColor: isSelected ? "#ecfdf5" : isGekozen ? "#e5e7eb" : "#f0fdf4",
                     padding: "12px",
-                    border: `2px solid ${selectedOplossing?.ID === o.ID ? "#2563eb" : "#ccc"}`,
+                    border: `3px solid ${isSelected ? "#22c55e" : "#ccc"}`,
                     borderRadius: "8px",
                     marginBottom: "10px",
-                    cursor: isGekozen ? "not-allowed" : "pointer",
-                    opacity: isGekozen ? 0.6 : 1
+                    cursor: isGekozen && !isSelected ? "not-allowed" : "pointer",
+                    opacity: isGekozen && !isSelected ? 0.6 : 1,
                   }}
                 >
                   <strong>{isGekozen ? "✅ " : ""}{o.Beschrijving}</strong>
@@ -141,7 +143,7 @@ export default function App() {
                           maxWidth: "300px",
                           maxHeight: "200px",
                           borderRadius: "6px",
-                          marginTop: "8px"
+                          marginTop: "8px",
                         }}
                       />
                     </div>
