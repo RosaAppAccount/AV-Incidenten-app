@@ -1,18 +1,19 @@
-// AV Incidenten App - hoofdcomponent
+// AV Incidenten App – hoofdcomponent
 // Toont incidenten, opties (oplossingen) en handelingen inclusief afbeeldingen en handleidingen
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 
 export default function App() {
-  // ⬇️ State voor data en navigatie
+  // ⬇️ App state
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [selectedOplossing, setSelectedOplossing] = useState(null);
+  const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
 
-  // ✅ Data laden bij opstart, eerst uit localStorage, anders uit standaardbestand
+  // ⬇️ Data laden bij opstart
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     if (opgeslagenData) {
@@ -21,10 +22,9 @@ export default function App() {
       setOplossingen(oplossingen);
       setHandelingen(handelingen);
     } else {
-      // 📥 Als geen data in localStorage → laad standaardbestand uit public
       fetch("/Gegevens_avIncidentenApp.xlsx")
-        .then(res => res.arrayBuffer())
-        .then(data => {
+        .then((res) => res.arrayBuffer())
+        .then((data) => {
           const wb = XLSX.read(data, { type: "array" });
           const incidentenSheet = XLSX.utils.sheet_to_json(wb.Sheets["Incidenten"]);
           const oplossingenSheet = XLSX.utils.sheet_to_json(wb.Sheets["Oplossingen"]);
@@ -38,9 +38,16 @@ export default function App() {
     }
   }, []);
 
+  // ✅ Bij kiezen oplossing → activeer en markeer als gekozen
+  const handleSelectOplossing = (oplossing) => {
+    setSelectedOplossing(oplossing);
+    setGekozenOplossingen((prev) =>
+      prev.includes(oplossing.ID) ? prev : [...prev, oplossing.ID]
+    );
+  };
+
   return (
     <div style={{ maxWidth: "1000px", margin: "auto", padding: "20px" }}>
-      {/* 🔊 Header met nieuwe titel */}
       <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f", marginBottom: "30px" }}>
         🔊 AV Incidenten App
       </h1>
@@ -49,7 +56,7 @@ export default function App() {
       {!selectedIncident && (
         <>
           <h2 style={{ fontSize: "20px", marginBottom: "10px" }}>Kies een incident:</h2>
-          {incidenten.map(incident => (
+          {incidenten.map((incident) => (
             <button
               key={incident.ID}
               onClick={() => {
@@ -80,24 +87,30 @@ export default function App() {
           </button>
           <h2>Opties: {selectedIncident.Beschrijving}</h2>
           {oplossingen
-            .filter(o => o.IncidentID === selectedIncident.ID)
-            .map(o => (
-              <div
-                key={o.ID}
-                onClick={() => setSelectedOplossing(o)}
-                style={{
-                  backgroundColor: "#f0fdf4",
-                  padding: "12px",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  marginBottom: "10px",
-                  cursor: "pointer"
-                }}
-              >
-                <strong>{o.Beschrijving}</strong>
-                <p style={{ margin: "6px 0 0", color: "#6b7280" }}>💡 {o.Consequentie}</p>
-              </div>
-            ))}
+            .filter((o) => o.IncidentID === selectedIncident.ID)
+            .map((o) => {
+              const isGekozen = gekozenOplossingen.includes(o.ID);
+              return (
+                <div
+                  key={o.ID}
+                  onClick={() => {
+                    if (!isGekozen) handleSelectOplossing(o);
+                  }}
+                  style={{
+                    backgroundColor: isGekozen ? "#e5e7eb" : "#f0fdf4",
+                    padding: "12px",
+                    border: `2px solid ${selectedOplossing?.ID === o.ID ? "#2563eb" : "#ccc"}`,
+                    borderRadius: "8px",
+                    marginBottom: "10px",
+                    cursor: isGekozen ? "not-allowed" : "pointer",
+                    opacity: isGekozen ? 0.6 : 1
+                  }}
+                >
+                  <strong>{isGekozen ? "✅ " : ""}{o.Beschrijving}</strong>
+                  <p style={{ margin: "6px 0 0", color: "#6b7280" }}>💡 {o.Consequentie}</p>
+                </div>
+              );
+            })}
         </>
       )}
 
@@ -110,7 +123,7 @@ export default function App() {
           <h2>📌 Handelingen</h2>
           <ul>
             {handelingen
-              .filter(h => h.OplossingID === selectedOplossing.ID)
+              .filter((h) => h.OplossingID === selectedOplossing.ID)
               .map((h, index) => (
                 <li key={h.ID} style={{ marginBottom: "12px" }}>
                   <strong>{index + 1}. {h.Beschrijving}</strong> — <span style={{ color: "#15803d" }}>{h.Verantwoordelijke}</span>
