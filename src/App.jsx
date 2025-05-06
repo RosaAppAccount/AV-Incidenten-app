@@ -166,7 +166,7 @@ export default function App() {
               <tbody>
                 {handelingen.filter(h => h.OplossingID === selectedOplossing?.ID).map((h, index) => (
                   <tr key={h.ID}>
-                    <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '99%' }}>
+                    <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '65%' }}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                         <input
                           type="checkbox"
