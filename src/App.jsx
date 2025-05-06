@@ -1,35 +1,36 @@
-// AV Incidenten App - met routing naar aparte handelingenpagina met checks en afbeeldingen onder de handeling
+// AV Incidenten App – Met checks, aparte handelingenpagina, en verbeterde styling
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { Routes, Route, useNavigate, BrowserRouter } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 
 export default function App() {
-  // 📊 Gegevens
+  // 📊 Data
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
   const [handelingen, setHandelingen] = useState([]);
   const [checks, setChecks] = useState([]);
 
-  // 🔐 Login & status
+  // 🔐 Login
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
-  const [logoURL, setLogoURL] = useState("/logo.png");
 
-  // 📌 Navigatie & selectie
+  // 📌 Selecties
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [selectedOplossing, setSelectedOplossing] = useState(null);
   const [gekozenOplossingen, setGekozenOplossingen] = useState([]);
   const [afgevinkteChecks, setAfgevinkteChecks] = useState([]);
   const [afgevinkteHandelingen, setAfgevinkteHandelingen] = useState([]);
 
-  const userPassword = "beheer2025";
-  const adminPassword = "admin123";
+  const [logoURL, setLogoURL] = useState("/logo.png");
 
   const navigate = useNavigate();
 
-  // 📥 Data laden uit Excel
+  const userPassword = "beheer2025";
+  const adminPassword = "admin123";
+
+  // 📥 Gegevens inladen bij start
   useEffect(() => {
     fetch("/Gegevens_avIncidentenApp.xlsx")
       .then((res) => res.arrayBuffer())
@@ -42,7 +43,7 @@ export default function App() {
       });
   }, []);
 
-  // 📤 Excel upload door admin
+  // 📤 Excel upload
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -57,16 +58,14 @@ export default function App() {
     reader.readAsArrayBuffer(file);
   };
 
-  // 🖼️ Logo uploaden
+  // 🖼️ Logo upload
   const handleLogoUpload = (e) => {
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setLogoURL(reader.result);
-    };
+    reader.onloadend = () => setLogoURL(reader.result);
     reader.readAsDataURL(e.target.files[0]);
   };
 
-  // 🔐 Login
+  // ✅ Login functies
   const handleLogin = () => {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
@@ -88,13 +87,14 @@ export default function App() {
   const handleLogout = () => {
     setIsAuthorized(false);
     setIsAdmin(false);
+    setInputPassword("");
     setSelectedIncident(null);
     setSelectedOplossing(null);
+    setGekozenOplossingen([]);
     setAfgevinkteChecks([]);
     setAfgevinkteHandelingen([]);
   };
 
-  // ✅ CHECKS AANVINKEN
   const toggleCheck = (id) => {
     setAfgevinkteChecks((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
@@ -107,7 +107,7 @@ export default function App() {
     );
   };
 
-  // 🧾 LOGIN PAGINA
+  // 🔐 Login scherm
   if (!isAuthorized) {
     return (
       <div style={{ maxWidth: "480px", margin: "100px auto", textAlign: "center" }}>
@@ -132,7 +132,7 @@ export default function App() {
     );
   }
 
-  // 🧠 PAGINA STRUCTUUR
+  // ✅ Hoofdapp
   return (
     <div style={{ maxWidth: "1000px", margin: "auto", padding: "20px" }}>
       {/* HEADER */}
@@ -141,12 +141,9 @@ export default function App() {
           <img src={logoURL} alt="Logo" style={{ width: "40px", height: "40px" }} />
           <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f" }}>🔊 AV Incidenten App</h1>
         </div>
-        <button onClick={handleLogout} style={{ backgroundColor: "#ef4444", color: "white", padding: "8px 16px", borderRadius: "5px" }}>
-          Terug naar login
-        </button>
       </div>
 
-      {/* ADMIN: Excel & logo upload */}
+      {/* ADMIN upload */}
       {isAdmin && (
         <div style={{ textAlign: "center", margin: "20px 0" }}>
           <h2>📁 Upload Excel</h2>
@@ -162,7 +159,7 @@ export default function App() {
           path="/"
           element={
             <>
-              <h2 style={{ marginTop: "20px" }}>📋 Kies een incident:</h2>
+              <h2>📋 Kies een incident:</h2>
               {incidenten.map((incident) => (
                 <button
                   key={incident.ID}
@@ -170,8 +167,10 @@ export default function App() {
                     setSelectedIncident(incident);
                     setSelectedOplossing(null);
                     setAfgevinkteChecks([]);
-                    const checksForIncident = checks.filter(c => c.IncidentID === incident.ID);
-                    navigate(checksForIncident.length > 0 ? "/checks" : "/oplossingen");
+                    setAfgevinkteHandelingen([]);
+                    setGekozenOplossingen([]);
+                    const heeftChecks = checks.some(c => c.IncidentID === incident.ID);
+                    navigate(heeftChecks ? "/checks" : "/oplossingen");
                   }}
                   style={{
                     display: "block",
@@ -196,7 +195,7 @@ export default function App() {
           element={
             <>
               <button onClick={() => navigate("/")} style={{ marginBottom: "20px" }}>⬅ Terug</button>
-              <h2>✅ Voer eerst de volgende controles uit</h2>
+              <h2>✅ Controleer eerst:</h2>
               <ul>
                 {checks.filter(c => c.IncidentID === selectedIncident?.ID).map((c) => (
                   <li key={c.ID} style={{ marginBottom: "10px" }}>
@@ -215,11 +214,16 @@ export default function App() {
               <button
                 onClick={() => navigate("/oplossingen")}
                 disabled={
-                  checks
-                    .filter(c => c.IncidentID === selectedIncident?.ID)
+                  checks.filter(c => c.IncidentID === selectedIncident?.ID)
                     .some(c => !afgevinkteChecks.includes(c.ID))
                 }
-                style={{ marginTop: "20px", backgroundColor: "#006e4f", color: "white", padding: "10px 20px", borderRadius: "5px" }}
+                style={{
+                  marginTop: "20px",
+                  backgroundColor: "#006e4f",
+                  color: "white",
+                  padding: "10px 20px",
+                  borderRadius: "5px"
+                }}
               >
                 Doorgaan
               </button>
@@ -236,13 +240,14 @@ export default function App() {
               <h2>💬 Opties: {selectedIncident?.Beschrijving}</h2>
               {oplossingen.filter(o => o.IncidentID === selectedIncident?.ID).map((o) => {
                 const isGekozen = gekozenOplossingen.includes(o.ID);
+                const isActief = selectedOplossing?.ID === o.ID;
                 return (
                   <div
                     key={o.ID}
                     onClick={() => {
-                      if (!isGekozen || selectedOplossing?.ID === o.ID) {
+                      if (!isGekozen || isActief) {
                         setSelectedOplossing(o);
-                        if (!gekozenOplossingen.includes(o.ID)) {
+                        if (!isGekozen) {
                           setGekozenOplossingen(prev => [...prev, o.ID]);
                         }
                         navigate("/handelingen");
@@ -250,15 +255,17 @@ export default function App() {
                     }}
                     style={{
                       backgroundColor: isGekozen ? "#e2e8f0" : "#f0fdf4",
-                      padding: "12px",
-                      border: selectedOplossing?.ID === o.ID ? "3px solid #22c55e" : "1px solid #ccc",
+                      padding: "10px 14px",
+                      border: isActief ? "3px solid #22c55e" : "1px solid #ccc",
                       borderRadius: "8px",
-                      marginBottom: "10px",
-                      cursor: isGekozen && selectedOplossing?.ID !== o.ID ? "not-allowed" : "pointer"
+                      marginBottom: "8px",
+                      cursor: isGekozen && !isActief ? "not-allowed" : "pointer"
                     }}
                   >
                     <strong>{isGekozen ? "✅ " : ""}{o.Beschrijving}</strong>
-                    <p style={{ color: "#6b7280" }}>💡 {o.Consequentie}</p>
+                    <p style={{ fontSize: "14px", margin: "6px 0", color: "#6b7280" }}>
+                      💡 {o.Consequentie}
+                    </p>
                   </div>
                 );
               })}
@@ -309,7 +316,3 @@ export default function App() {
     </div>
   );
 }
-
-// 👇 Nodig in main.jsx:
-// import { BrowserRouter } from "react-router-dom";
-// <BrowserRouter><App /></BrowserRouter>
