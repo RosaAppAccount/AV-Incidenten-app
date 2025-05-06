@@ -1,6 +1,3 @@
-// AV Incidenten App - hoofdcomponent
-// Toont incidenten, opties en handelingen met aparte pagina voor handelingen
-
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useLocation } from "react-router-dom";
@@ -16,7 +13,6 @@ function App() {
   );
 }
 
-// ✅ Startpagina met incidenten en opties (oplossingen)
 function Startscherm() {
   const [incidenten, setIncidenten] = useState([]);
   const [oplossingen, setOplossingen] = useState([]);
@@ -26,7 +22,6 @@ function Startscherm() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 📥 Gegevens ophalen bij opstart (van localStorage of standaard Excelbestand)
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     if (opgeslagenData) {
@@ -48,12 +43,14 @@ function Startscherm() {
     }
   }, []);
 
-  // ⬅️ Komt terug uit handelingenpagina → zet weer incident + optie actief
   useEffect(() => {
     if (location.state?.terugNaarIncident) {
       const terugIncident = incidenten.find(i => String(i.ID) === String(location.state.terugNaarIncident));
       setSelectedIncident(terugIncident);
       setSelectedOplossingID(location.state.terugNaarOplossing);
+      if (!gekozenOplossingen.includes(location.state.terugNaarOplossing)) {
+        setGekozenOplossingen((prev) => [...prev, location.state.terugNaarOplossing]);
+      }
     }
   }, [incidenten]);
 
@@ -61,7 +58,6 @@ function Startscherm() {
     <div style={{ maxWidth: "1000px", margin: "auto", padding: "20px" }}>
       <h1 style={{ fontSize: "28px", color: "#006e4f", marginBottom: "20px" }}>🔊 AV Incidenten App</h1>
 
-      {/* 📋 Incidentenlijst tonen als er nog geen incident geselecteerd is */}
       {!selectedIncident && (
         <>
           <h2>Kies een incident:</h2>
@@ -88,7 +84,6 @@ function Startscherm() {
         </>
       )}
 
-      {/* 💡 Opties (oplossingen) bij een geselecteerd incident */}
       {selectedIncident && (
         <>
           <button onClick={() => setSelectedIncident(null)} style={{ marginBottom: "20px" }}>
@@ -131,14 +126,12 @@ function Startscherm() {
   );
 }
 
-// ✅ Handelingenpagina: toont handelingen met terugknop naar opties van het juiste incident
 function HandelingenPagina() {
   const { oplossingID, incidentID } = useParams();
   const [handelingen, setHandelingen] = useState([]);
   const [oplossing, setOplossing] = useState(null);
   const navigate = useNavigate();
 
-  // 📥 Laad handelingen en oplossing vanuit localStorage
   useEffect(() => {
     const opgeslagenData = localStorage.getItem("incidentenData");
     if (opgeslagenData) {
@@ -151,7 +144,6 @@ function HandelingenPagina() {
 
   return (
     <div style={{ maxWidth: "1000px", margin: "auto", padding: "20px" }}>
-      {/* 🔙 Terug naar optiespagina met juiste incident actief */}
       <button
         onClick={() => navigate("/", { state: { terugNaarIncident: incidentID, terugNaarOplossing: oplossingID } })}
         style={{ marginBottom: "20px" }}
@@ -168,14 +160,12 @@ function HandelingenPagina() {
             <li key={h.ID} style={{ marginBottom: "12px" }}>
               <strong>{index + 1}. {h.Beschrijving}</strong> — <span style={{ color: "#15803d" }}>{h.Verantwoordelijke}</span>
 
-              {/* 📄 Toon handleiding-link als aanwezig */}
               {h.Handleiding && (
                 <div>
                   📄 <a href={`/handleidingen/${h.Handleiding}`} target="_blank" rel="noreferrer">Bekijk handleiding</a>
                 </div>
               )}
 
-              {/* 🖼️ Toon afbeelding als aanwezig */}
               {h.AfbeeldingBestand && (
                 <div>
                   <img
