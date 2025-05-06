@@ -113,7 +113,7 @@ export default function App() {
               </>
             ) : (
               <>
-                <button onClick={() => setSelectedIncident(null)} style={{ marginBottom: "20px" }}>⬅ Terug</button>
+                <button onClick={() => setSelectedIncident(null)} style={{ marginBottom: "20px" }}>⬅ Terug naar lijst incidenten</button>
                 <h3>💬 Opties: {selectedIncident.Beschrijving}</h3>
                 {oplossingen
                   .filter((o) => o.IncidentID === selectedIncident.ID)
@@ -166,7 +166,7 @@ export default function App() {
               <tbody>
                 {handelingen.filter(h => h.OplossingID === selectedOplossing?.ID).map((h, index) => (
                   <tr key={h.ID}>
-                    <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '65%' }}>
+                    <td style={{ verticalAlign: 'top', paddingRight: '16px', width: '99%' }}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                         <input
                           type="checkbox"
