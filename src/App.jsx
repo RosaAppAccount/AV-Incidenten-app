@@ -1,4 +1,4 @@
-// AV Incidenten App – met inlog, routing, en heldere handelingen-kop
+// AV Incidenten App – met vaste lichte styling en groene incidentenkaders
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
@@ -11,7 +11,7 @@ export default function App() {
   const [handelingen, setHandelingen] = useState([]);
   const [checks, setChecks] = useState([]);
 
-  // 🔐 Login (reset bij refresh!)
+  // 🔐 Login
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
@@ -69,14 +69,24 @@ export default function App() {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
       setIsAdmin(false);
-      navigate("/"); // altijd naar home
     } else if (inputPassword === adminPassword) {
       setIsAuthorized(true);
       setIsAdmin(true);
-      navigate("/");
     } else {
       alert("Wachtwoord ongeldig");
     }
+  };
+
+  const handleLogout = () => {
+    setIsAuthorized(false);
+    setIsAdmin(false);
+    setInputPassword("");
+    setSelectedIncident(null);
+    setSelectedOplossing(null);
+    setGekozenOplossingen([]);
+    setAfgevinkteChecks([]);
+    setAfgevinkteHandelingen([]);
+    navigate("/");
   };
 
   const toggleCheck = (id) => {
@@ -93,29 +103,55 @@ export default function App() {
 
   // 🖼️ Basis achtergrondkleur afdwingen
   const appBackgroundStyle = {
-    backgroundColor: "#ffffff", // altijd wit
-    color: "#000000", // altijd zwart
+    backgroundColor: "#ffffff",
+    color: "#000000",
     minHeight: "100vh",
     padding: "20px"
   };
 
-  // 🔑 Toon inlogscherm als niet ingelogd
+  // 🔐 Login scherm tonen als niet ingelogd
   if (!isAuthorized) {
     return (
-      <div style={appBackgroundStyle}>
-        <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f", marginBottom: "20px" }}>
+      <div style={{
+        maxWidth: '480px',
+        margin: '100px auto',
+        textAlign: 'center',
+        padding: '30px',
+        border: '1px solid #ddd',
+        borderRadius: '10px',
+        backgroundColor: 'white',
+        color: 'black'
+      }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#006e4f' }}>
           🔊 AV Incidenten App
         </h1>
-        <p style={{ marginBottom: "10px" }}>Voer wachtwoord in:</p>
+        <p style={{ marginBottom: '20px', color: '#374151' }}>
+          Log in om toegang te krijgen tot de applicatie.
+        </p>
         <input
           type="password"
           value={inputPassword}
           onChange={(e) => setInputPassword(e.target.value)}
-          style={{ padding: "8px", width: "200px", marginBottom: "10px" }}
+          placeholder="Voer wachtwoord in..."
+          style={{
+            padding: '10px',
+            width: '100%',
+            marginBottom: '15px',
+            borderRadius: '5px',
+            border: '1px solid #ccc'
+          }}
         />
         <div>
-          <button onClick={handleLogin} style={{ backgroundColor: "#006e4f", color: "white", padding: "8px 16px", borderRadius: "5px" }}>
-            Inloggen
+          <button
+            onClick={handleLogin}
+            style={{
+              backgroundColor: '#006e4f',
+              color: 'white',
+              padding: '10px 20px',
+              borderRadius: '5px'
+            }}
+          >
+            Log in
           </button>
         </div>
       </div>
@@ -136,6 +172,14 @@ export default function App() {
                   <img src={logoURL} alt="Logo" style={{ width: "40px", height: "40px" }} />
                   <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f" }}>🔊 AV Incidenten App</h1>
                 </div>
+                <button onClick={handleLogout} style={{
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '5px'
+                }}>
+                  Uitloggen
+                </button>
               </div>
 
               {isAdmin && (
@@ -165,7 +209,7 @@ export default function App() {
                     width: "100%",
                     marginBottom: "8px",
                     padding: "10px 16px",
-                    backgroundColor: "#007b1b", // groene kleur
+                    backgroundColor: "#007b1b",
                     color: "white",
                     borderRadius: "6px",
                     border: "none"
@@ -270,7 +314,6 @@ export default function App() {
           element={
             <>
               <button onClick={() => navigate("/oplossingen")} style={{ marginBottom: "20px" }}>⬅ Terug</button>
-              <h2>📌 Handelingen horen bij optie: {selectedOplossing?.Beschrijving}</h2>
               <ul>
                 {handelingen.filter(h => h.OplossingID === selectedOplossing?.ID).map((h, index) => (
                   <li key={h.ID} style={{ marginBottom: "16px" }}>
