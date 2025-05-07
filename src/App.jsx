@@ -1,4 +1,4 @@
-// AV Incidenten App – Compactere opties, dynamisch consequentie-lampje, en vereenvoudigde handelingenpagina
+// AV Incidenten App – met vaste lichte styling en groene incidentenkaders
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
@@ -106,34 +106,17 @@ export default function App() {
     );
   };
 
-  // 🔐 Login scherm
-  if (!isAuthorized) {
-    return (
-      <div style={{ maxWidth: "480px", margin: "100px auto", textAlign: "center" }}>
-        <h1 style={{ color: "#006e4f" }}>🔊 AV Incidenten App</h1>
-        <p>Deze app toont de juiste oplossingen en handelingen bij AV-noodgevallen.</p>
-        <input
-          type="password"
-          value={inputPassword}
-          onChange={(e) => setInputPassword(e.target.value)}
-          placeholder="Wachtwoord..."
-          style={{ padding: "10px", width: "100%", marginBottom: "15px" }}
-        />
-        <div>
-          <button onClick={handleLogin} style={{ backgroundColor: "#006e4f", color: "white", padding: "10px", marginRight: "10px" }}>
-            Gebruiker
-          </button>
-          <button onClick={handleAdminLogin} style={{ backgroundColor: "#00a2a1", color: "white", padding: "10px" }}>
-            Admin
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // 🖼️ Basis achtergrondkleur afdwingen
+  const appBackgroundStyle = {
+    backgroundColor: "#ffffff", // altijd wit, negeer donkere thema's
+    color: "#000000", // altijd zwarte tekst
+    minHeight: "100vh",
+    padding: "20px"
+  };
 
   // ✅ Hoofdapp
   return (
-    <div style={{ maxWidth: "1000px", margin: "auto", padding: "20px" }}>
+    <div style={appBackgroundStyle}>
       <Routes>
         {/* INCIDENTENLIJST */}
         <Route
@@ -174,9 +157,10 @@ export default function App() {
                     width: "100%",
                     marginBottom: "8px",
                     padding: "10px 16px",
-                    backgroundColor: "#006e4f",
+                    backgroundColor: "#007b1b", // groene kleur uit bijlage
                     color: "white",
-                    borderRadius: "6px"
+                    borderRadius: "6px",
+                    border: "none"
                   }}
                 >
                   {incident.Beschrijving}
@@ -260,7 +244,7 @@ export default function App() {
                     }}
                   >
                     <strong>{isGekozen ? "✅ " : ""}{o.Beschrijving}</strong>
-                    {o.Consequentie && (
+                    {o.Consequentie && o.Consequentie.trim() !== "" && (
                       <p style={{ fontSize: "13px", margin: "4px 0", color: "#6b7280" }}>
                         💡 {o.Consequentie}
                       </p>
