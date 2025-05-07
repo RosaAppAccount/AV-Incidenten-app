@@ -1,8 +1,8 @@
-// AV Incidenten App – met vaste lichte styling en groene incidentenkaders
+// AV Incidenten App – vaste lichte styling, groene incidentenkaders, zonder uitlogknop, met reset naar home bij refresh
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 
 export default function App() {
   // 📊 Data
@@ -26,6 +26,7 @@ export default function App() {
   const [logoURL, setLogoURL] = useState("/logo.png");
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const userPassword = "beheer2025";
   const adminPassword = "admin123";
@@ -42,6 +43,13 @@ export default function App() {
         setChecks(XLSX.utils.sheet_to_json(wb.Sheets["Checks"] || []));
       });
   }, []);
+
+  // 🚨 Bij F5 of direct visit → ga altijd naar /
+  useEffect(() => {
+    if (!isAuthorized && location.pathname !== "/") {
+      navigate("/");
+    }
+  }, [isAuthorized, location, navigate]);
 
   // 📤 Excel upload
   const handleFileUpload = (e) => {
@@ -69,24 +77,14 @@ export default function App() {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
       setIsAdmin(false);
+      navigate("/");
     } else if (inputPassword === adminPassword) {
       setIsAuthorized(true);
       setIsAdmin(true);
+      navigate("/");
     } else {
       alert("Wachtwoord ongeldig");
     }
-  };
-
-  const handleLogout = () => {
-    setIsAuthorized(false);
-    setIsAdmin(false);
-    setInputPassword("");
-    setSelectedIncident(null);
-    setSelectedOplossing(null);
-    setGekozenOplossingen([]);
-    setAfgevinkteChecks([]);
-    setAfgevinkteHandelingen([]);
-    navigate("/");
   };
 
   const toggleCheck = (id) => {
@@ -172,14 +170,6 @@ export default function App() {
                   <img src={logoURL} alt="Logo" style={{ width: "40px", height: "40px" }} />
                   <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f" }}>🔊 AV Incidenten App</h1>
                 </div>
-                <button onClick={handleLogout} style={{
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  padding: '8px 16px',
-                  borderRadius: '5px'
-                }}>
-                  Uitloggen
-                </button>
               </div>
 
               {isAdmin && (
@@ -229,7 +219,7 @@ export default function App() {
             <>
               <button onClick={() => navigate("/")} style={{ marginBottom: "20px" }}>⬅ Terug</button>
               <h2>✅ Controleer eerst:</h2>
-              <ul>
+              <ul style={{ listStyleType: "none", padding: 0 }}>
                 {checks.filter(c => c.IncidentID === selectedIncident?.ID).map((c) => (
                   <li key={c.ID} style={{ marginBottom: "10px" }}>
                     <label>
@@ -314,7 +304,7 @@ export default function App() {
           element={
             <>
               <button onClick={() => navigate("/oplossingen")} style={{ marginBottom: "20px" }}>⬅ Terug</button>
-              <ul>
+              <ul style={{ listStyleType: "none", padding: 0 }}>
                 {handelingen.filter(h => h.OplossingID === selectedOplossing?.ID).map((h, index) => (
                   <li key={h.ID} style={{ marginBottom: "16px" }}>
                     <label>
