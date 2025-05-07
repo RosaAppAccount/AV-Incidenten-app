@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 
 export default function App() {
   // 📊 Data
@@ -44,12 +44,10 @@ export default function App() {
       });
   }, []);
 
-  // 🚨 Bij F5 of direct visit → ga altijd naar /
-  useEffect(() => {
-    if (!isAuthorized && location.pathname !== "/") {
-      navigate("/");
-    }
-  }, [isAuthorized, location, navigate]);
+  // 🚨 Bij F5 of directe URL → altijd redirect naar /
+  if (!isAuthorized && location.pathname !== "/") {
+    return <Navigate to="/" replace />;
+  }
 
   // 📤 Excel upload
   const handleFileUpload = (e) => {
@@ -181,7 +179,7 @@ export default function App() {
                 </div>
               )}
 
-              // <h2>📋 Kies een incident:</h2>  geen logo's
+              {/* Kies een incident */}
               <h2>Kies een incident:</h2>
               {incidenten.map((incident) => (
                 <button
@@ -261,7 +259,6 @@ export default function App() {
           element={
             <>
               <button onClick={() => navigate("/")} style={{ marginBottom: "20px" }}>⬅ Terug</button>
-              // <h2>💬 Opties: {selectedIncident?.Beschrijving}</h2> zonder logo
               <h2>Opties: {selectedIncident?.Beschrijving}</h2>
               {oplossingen.filter(o => o.IncidentID === selectedIncident?.ID).map((o) => {
                 const isGekozen = gekozenOplossingen.includes(o.ID);
