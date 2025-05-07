@@ -1,4 +1,4 @@
-// AV Incidenten App – Met checks, aparte handelingenpagina, en verbeterde styling
+// AV Incidenten App – Compactere opties, dynamisch consequentie-lampje, en vereenvoudigde handelingenpagina
 
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
@@ -30,7 +30,7 @@ export default function App() {
   const userPassword = "beheer2025";
   const adminPassword = "admin123";
 
-  // 📥 Gegevens inladen bij start
+  // 📥 Gegevens laden
   useEffect(() => {
     fetch("/Gegevens_avIncidentenApp.xlsx")
       .then((res) => res.arrayBuffer())
@@ -45,7 +45,6 @@ export default function App() {
 
   // 📤 Excel upload
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
     const reader = new FileReader();
     reader.onload = (evt) => {
       const data = new Uint8Array(evt.target.result);
@@ -55,7 +54,7 @@ export default function App() {
       setHandelingen(XLSX.utils.sheet_to_json(wb.Sheets["Handelingen"] || []));
       setChecks(XLSX.utils.sheet_to_json(wb.Sheets["Checks"] || []));
     };
-    reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(e.target.files[0]);
   };
 
   // 🖼️ Logo upload
@@ -65,7 +64,7 @@ export default function App() {
     reader.readAsDataURL(e.target.files[0]);
   };
 
-  // ✅ Login functies
+  // ✅ Login
   const handleLogin = () => {
     if (inputPassword === userPassword) {
       setIsAuthorized(true);
@@ -135,30 +134,28 @@ export default function App() {
   // ✅ Hoofdapp
   return (
     <div style={{ maxWidth: "1000px", margin: "auto", padding: "20px" }}>
-      {/* HEADER */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <img src={logoURL} alt="Logo" style={{ width: "40px", height: "40px" }} />
-          <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f" }}>🔊 AV Incidenten App</h1>
-        </div>
-      </div>
-
-      {/* ADMIN upload */}
-      {isAdmin && (
-        <div style={{ textAlign: "center", margin: "20px 0" }}>
-          <h2>📁 Upload Excel</h2>
-          <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} />
-          <h2>🖼️ Upload Logo</h2>
-          <input type="file" accept="image/*" onChange={handleLogoUpload} />
-        </div>
-      )}
-
       <Routes>
         {/* INCIDENTENLIJST */}
         <Route
           path="/"
           element={
             <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <img src={logoURL} alt="Logo" style={{ width: "40px", height: "40px" }} />
+                  <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#006e4f" }}>🔊 AV Incidenten App</h1>
+                </div>
+              </div>
+
+              {isAdmin && (
+                <div style={{ textAlign: "center", margin: "20px 0" }}>
+                  <h2>📁 Upload Excel</h2>
+                  <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} />
+                  <h2>🖼️ Upload Logo</h2>
+                  <input type="file" accept="image/*" onChange={handleLogoUpload} />
+                </div>
+              )}
+
               <h2>📋 Kies een incident:</h2>
               {incidenten.map((incident) => (
                 <button
@@ -255,17 +252,19 @@ export default function App() {
                     }}
                     style={{
                       backgroundColor: isGekozen ? "#e2e8f0" : "#f0fdf4",
-                      padding: "10px 14px",
+                      padding: "8px 12px",
                       border: isActief ? "3px solid #22c55e" : "1px solid #ccc",
                       borderRadius: "8px",
-                      marginBottom: "8px",
+                      marginBottom: "6px",
                       cursor: isGekozen && !isActief ? "not-allowed" : "pointer"
                     }}
                   >
                     <strong>{isGekozen ? "✅ " : ""}{o.Beschrijving}</strong>
-                    <p style={{ fontSize: "14px", margin: "6px 0", color: "#6b7280" }}>
-                      💡 {o.Consequentie}
-                    </p>
+                    {o.Consequentie && (
+                      <p style={{ fontSize: "13px", margin: "4px 0", color: "#6b7280" }}>
+                        💡 {o.Consequentie}
+                      </p>
+                    )}
                   </div>
                 );
               })}
@@ -279,7 +278,6 @@ export default function App() {
           element={
             <>
               <button onClick={() => navigate("/oplossingen")} style={{ marginBottom: "20px" }}>⬅ Terug</button>
-              <h2>📌 Handelingen</h2>
               <ul>
                 {handelingen.filter(h => h.OplossingID === selectedOplossing?.ID).map((h, index) => (
                   <li key={h.ID} style={{ marginBottom: "16px" }}>
