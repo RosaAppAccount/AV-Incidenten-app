@@ -181,7 +181,8 @@ export default function App() {
                 </div>
               )}
 
-              <h2>📋 Kies een incident:</h2>
+              // <h2>📋 Kies een incident:</h2>  geen logo's
+              <h2>Kies een incident:</h2>
               {incidenten.map((incident) => (
                 <button
                   key={incident.ID}
@@ -218,7 +219,7 @@ export default function App() {
           element={
             <>
               <button onClick={() => navigate("/")} style={{ marginBottom: "20px" }}>⬅ Terug</button>
-              <h2>✅ Controleer eerst:</h2>
+              <h3>✅ Controleer en vink af:</h3>
               <ul style={{ listStyleType: "none", padding: 0 }}>
                 {checks.filter(c => c.IncidentID === selectedIncident?.ID).map((c) => (
                   <li key={c.ID} style={{ marginBottom: "10px" }}>
@@ -260,7 +261,8 @@ export default function App() {
           element={
             <>
               <button onClick={() => navigate("/")} style={{ marginBottom: "20px" }}>⬅ Terug</button>
-              <h2>💬 Opties: {selectedIncident?.Beschrijving}</h2>
+              // <h2>💬 Opties: {selectedIncident?.Beschrijving}</h2> zonder logo
+              <h2>Opties: {selectedIncident?.Beschrijving}</h2>
               {oplossingen.filter(o => o.IncidentID === selectedIncident?.ID).map((o) => {
                 const isGekozen = gekozenOplossingen.includes(o.ID);
                 const isActief = selectedOplossing?.ID === o.ID;
